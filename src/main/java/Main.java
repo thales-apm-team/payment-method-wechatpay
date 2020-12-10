@@ -1,9 +1,15 @@
+import com.google.zxing.BarcodeFormat;
+import com.google.zxing.WriterException;
+import com.google.zxing.client.j2se.MatrixToImageWriter;
+import com.google.zxing.common.BitMatrix;
+import com.google.zxing.qrcode.QRCodeWriter;
 import com.payline.payment.wechatpay.bean.response.Response;
 import com.payline.payment.wechatpay.bean.request.UnifiedOrderRequest;
 import com.payline.payment.wechatpay.bean.configuration.RequestConfiguration;
 import com.payline.payment.wechatpay.bean.nested.SignType;
 import com.payline.payment.wechatpay.bean.response.UnifiedOrderResponse;
 import com.payline.payment.wechatpay.service.HttpService;
+import com.payline.payment.wechatpay.service.QRCodeService;
 import com.payline.payment.wechatpay.util.constant.ContractConfigurationKeys;
 import com.payline.payment.wechatpay.util.constant.PartnerConfigurationKeys;
 import com.payline.pmapi.bean.configuration.PartnerConfiguration;
@@ -11,6 +17,11 @@ import com.payline.pmapi.bean.payment.ContractConfiguration;
 import com.payline.pmapi.bean.payment.ContractProperty;
 import com.payline.pmapi.bean.payment.Environment;
 
+import javax.imageio.ImageIO;
+import java.awt.image.BufferedImage;
+import java.io.File;
+import java.io.FileOutputStream;
+import java.io.IOException;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -44,7 +55,7 @@ public class Main {
 
     public static void main(String[] arg) {
           HttpService httpService = HttpService.getInstance();
-
+        QRCodeService qrCodeService = QRCodeService.getInstance();
         try {
             RequestConfiguration requestConfiguration = new RequestConfiguration(
                     aContractConfiguration(),
@@ -71,6 +82,11 @@ public class Main {
             UnifiedOrderResponse response  = httpService.unifiedOrder(requestConfiguration, request);
 
             System.out.println(response.getCodeUrl());
+
+            BufferedImage image = qrCodeService.generateMatrix(response.getCodeUrl(), 300);
+            File file = new File("/home/dev/Documents/qrcode");
+            ImageIO.write(image, "png", file);
+
         } catch (Exception e) {
             e.printStackTrace();
         }
