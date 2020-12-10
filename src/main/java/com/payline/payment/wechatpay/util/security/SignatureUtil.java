@@ -1,33 +1,30 @@
 package com.payline.payment.wechatpay.util.security;
 
-import com.github.wxpay.sdk.WXPayConstants;
+import com.payline.payment.wechatpay.bean.nested.SignType;
 import com.payline.payment.wechatpay.util.JsonService;
 import lombok.experimental.UtilityClass;
+import org.apache.commons.codec.binary.Hex;
 
 import javax.crypto.Mac;
 import javax.crypto.spec.SecretKeySpec;
 import java.nio.charset.StandardCharsets;
 import java.security.InvalidKeyException;
+import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
-import java.security.SecureRandom;
 import java.util.Map;
-import java.util.Random;
 import java.util.stream.Collectors;
 
 @UtilityClass
 public class SignatureUtil {
     private static final String FIELD_SIGN = "sign";
 
-    private static final String SYMBOLS = "0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ";
-    private static final Random RANDOM = new SecureRandom();
 
-
-    public static boolean isSignatureValid(Map<String, String> data, String key) {
+    public static boolean isSignatureValid(Map<String, String> data, String key, SignType signType) {
         if (!data.containsKey(FIELD_SIGN)) {
             return false;
         }
         String sign = data.get(FIELD_SIGN);
-        return generateSignature(data, key).equals(sign);
+        return generateSignature(data, key, signType).equals(sign);
     }
 
     /**
@@ -37,8 +34,8 @@ public class SignatureUtil {
      * @param key  API密钥
      * @return 含有sign字段的XML
      */
-    public static String generateSignedXml(final Map<String, String> data, String key) {
-        String sign = generateSignature(data, key);
+    public static String generateSignedXml(final Map<String, String> data, String key, SignType signType) {
+        String sign = generateSignature(data, key, signType);
         data.put(FIELD_SIGN, sign);
         return JsonService.getInstance().mapToXml(data);
     }
@@ -51,7 +48,7 @@ public class SignatureUtil {
      * @param key  API密钥
      * @return 签名
      */
-    public static String generateSignature(final Map<String, String> data, String key) {
+    public static String generateSignature(final Map<String, String> data, String key, SignType signType) {
         StringBuilder sb = new StringBuilder(
                 data.entrySet().stream()
                 .filter(e -> !e.getKey().equals(FIELD_SIGN))        // remove signature entry
@@ -60,23 +57,16 @@ public class SignatureUtil {
                 .map(e -> e.getKey() + "=" + e.getValue().trim())// create URL encoded String with remaining entries
                 .collect(Collectors.joining("&"))
         );
-        sb.append("key=").append(key);                           // add key to the end of created String
-        return HMACSHA256(sb.toString(), key);
-    }
+        sb.append("&key=").append(key);                           // add key to the end of created String
 
-
-    /**
-     * 获取随机字符串 Nonce Str
-     *
-     * @return String 随机字符串
-     */
-    public static String generateNonceStr() {
-        char[] nonceChars = new char[32];
-        for (int index = 0; index < nonceChars.length; ++index) {
-            nonceChars[index] = SYMBOLS.charAt(RANDOM.nextInt(SYMBOLS.length()));
+        if (signType.equals(SignType.MD5)){
+            return hashWithMD5(sb.toString());
+        }else{
+            return hashWithSha256(sb.toString(), key);
         }
-        return new String(nonceChars);
     }
+
+
 
     /**
      * 生成 HMACSHA256
@@ -88,9 +78,11 @@ public class SignatureUtil {
      */
     public static String HMACSHA256(String data, String key) {
         try {
+            // init cipher
             Mac sha256_HMAC = Mac.getInstance("HmacSHA256");
             SecretKeySpec secret_key = new SecretKeySpec(key.getBytes(StandardCharsets.UTF_8), "HmacSHA256");
             sha256_HMAC.init(secret_key);
+
             byte[] array = sha256_HMAC.doFinal(data.getBytes(StandardCharsets.UTF_8));
             StringBuilder sb = new StringBuilder();
             for (byte item : array) {
@@ -104,6 +96,36 @@ public class SignatureUtil {
             e.printStackTrace();
         }
         return null; // todo a changer
+    }
+
+    public String hashWithSha256(String data, String key){
+        try {
+            // init cipher
+            Mac sha256_HMAC = Mac.getInstance("HmacSHA256");    // todo passer ca en String
+            SecretKeySpec secret_key = new SecretKeySpec(key.getBytes(StandardCharsets.UTF_8), "HmacSHA256");
+            sha256_HMAC.init(secret_key);
+
+            return Hex.encodeHexString(sha256_HMAC.doFinal(data.getBytes(StandardCharsets.UTF_8))).toUpperCase();
+
+        } catch (NoSuchAlgorithmException e) {
+            e.printStackTrace();
+        } catch (InvalidKeyException e) {
+            e.printStackTrace();
+        }
+         return null; // todo
+    }
+
+    public String hashWithMD5(String data){
+        try {
+            MessageDigest md = MessageDigest.getInstance("MD5");
+            md.update(data.getBytes());
+            byte[] digest = md.digest();
+            return Hex.encodeHexString(digest).toUpperCase();
+        } catch (NoSuchAlgorithmException e) {
+            e.printStackTrace();
+        }
+        return null; // todo a changer
+
     }
 
 }

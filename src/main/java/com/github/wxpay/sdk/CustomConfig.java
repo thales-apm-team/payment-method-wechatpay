@@ -24,4 +24,8 @@ public class CustomConfig extends WXPayConfig {
     }
 
 
+    @Override
+    IWXPayDomain getWXPayDomain() {
+        return null;
+    }
 }

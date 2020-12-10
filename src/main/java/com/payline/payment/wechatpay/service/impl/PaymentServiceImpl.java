@@ -3,10 +3,12 @@ package com.payline.payment.wechatpay.service.impl;
 import com.payline.payment.wechatpay.bean.Response;
 import com.payline.payment.wechatpay.bean.UnifiedOrderRequest;
 import com.payline.payment.wechatpay.bean.configuration.RequestConfiguration;
+import com.payline.payment.wechatpay.bean.nested.SignType;
 import com.payline.payment.wechatpay.exception.PluginException;
 import com.payline.payment.wechatpay.service.HttpService;
 import com.payline.payment.wechatpay.service.RequestConfigurationService;
 import com.payline.payment.wechatpay.util.PluginUtils;
+import com.payline.payment.wechatpay.util.constant.ContractConfigurationKeys;
 import com.payline.payment.wechatpay.util.constant.PartnerConfigurationKeys;
 import com.payline.pmapi.bean.common.FailureCause;
 import com.payline.pmapi.bean.payment.request.PaymentRequest;
@@ -26,21 +28,21 @@ public class PaymentServiceImpl implements PaymentService {
 
             // create request object
             UnifiedOrderRequest request = UnifiedOrderRequest.builder()
-                    .body(configuration.getPartnerConfiguration().getProperty(PartnerConfigurationKeys.APPID))
+                    .body(paymentRequest.getSoftDescriptor())
                     .outTradeNo(paymentRequest.getTransactionId())
                     .deviceInfo("WEB")
                     .feeType(paymentRequest.getAmount().getCurrency().getCurrencyCode())
-                    .totalFee("1")
-                    .spBillCreateIp("123.12.12.123")
-                    .notifyUrl("https://webhook.site/3d9e37dd-725b-4e61-a910-f1cdfa1ec78f")
+                    .totalFee(paymentRequest.getAmount().getAmountInSmallestUnit().toString())
+                    .spBillCreateIp("123.12.12.123")        // todo on map ca comment? c'est obligatoire
+                    .notifyUrl(configuration.getEnvironment().getNotificationURL())
                     .tradeType("NATIVE")
-                    .productId("12")
-                    .appId("wxa5b511bc130a4d9e")
-                    .merchantId("110605603")
-                    .subAppId("1")
-                    .subMerchantId("0")
-                    .nonceStr("123456")
-                    .signType("HMAC-SHA256")
+                    .productId(paymentRequest.getOrder().getReference())
+                    .appId(configuration.getPartnerConfiguration().getProperty(PartnerConfigurationKeys.APPID))
+                    .merchantId(configuration.getContractConfiguration().getProperty(ContractConfigurationKeys.MERCHANT_ID).getValue())
+                    .subAppId(configuration.getPartnerConfiguration().getProperty(PartnerConfigurationKeys.SUB_APPID))
+                    .subMerchantId(configuration.getContractConfiguration().getProperty(ContractConfigurationKeys.SUB_MERCHANT_ID).getValue())
+                    .nonceStr(PluginUtils.generateRandomString(32))
+                    .signType(SignType.valueOf( configuration.getPartnerConfiguration().getProperty(PartnerConfigurationKeys.SIGN_TYPE)))
                     .build();
 
             // call WeChatPay API

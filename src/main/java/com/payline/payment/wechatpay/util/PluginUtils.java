@@ -3,6 +3,9 @@ package com.payline.payment.wechatpay.util;
 import com.payline.pmapi.bean.common.Amount;
 import lombok.experimental.UtilityClass;
 
+import java.security.SecureRandom;
+import java.util.Random;
+
 @UtilityClass
 public class PluginUtils {
     public final int ERROR_CODE_MAX_LENGTH = 50;
@@ -71,5 +74,15 @@ public class PluginUtils {
     public String runtimeErrorCode(RuntimeException e) {
         String errorCode = "plugin error: " + e.toString().substring(e.toString().lastIndexOf('.') + 1);
         return PluginUtils.truncate(errorCode, ERROR_CODE_MAX_LENGTH);
+    }
+
+    private static final String SYMBOLS = "0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ";
+    private static final Random RANDOM = new SecureRandom();
+    public static String generateRandomString(int l) {
+        char[] nonceChars = new char[l];
+        for (int index = 0; index < nonceChars.length; ++index) {
+            nonceChars[index] = SYMBOLS.charAt(RANDOM.nextInt(SYMBOLS.length()));
+        }
+        return new String(nonceChars);
     }
 }

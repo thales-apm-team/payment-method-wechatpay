@@ -1,12 +1,11 @@
-import com.github.wxpay.sdk.CustomConfig;
-import com.github.wxpay.sdk.WXPay;
 import com.payline.payment.wechatpay.bean.Response;
 import com.payline.payment.wechatpay.bean.UnifiedOrderRequest;
 import com.payline.payment.wechatpay.bean.configuration.RequestConfiguration;
+import com.payline.payment.wechatpay.bean.nested.SignType;
 import com.payline.payment.wechatpay.service.HttpService;
-import com.payline.payment.wechatpay.util.JsonService;
 import com.payline.payment.wechatpay.util.constant.ContractConfigurationKeys;
 import com.payline.payment.wechatpay.util.constant.PartnerConfigurationKeys;
+import com.payline.payment.wechatpay.util.security.SignatureUtil;
 import com.payline.pmapi.bean.configuration.PartnerConfiguration;
 import com.payline.pmapi.bean.payment.ContractConfiguration;
 import com.payline.pmapi.bean.payment.ContractProperty;
@@ -16,6 +15,9 @@ import java.util.HashMap;
 import java.util.Map;
 
 public class Main {
+    static String keyMD5 = "2ab9071b06b9f739b950ddb41db2690d";
+    static String keySHA256 = "5df05d27ce49d87ca38f046325ea3c4d";
+
     static Environment anEnvironment() {
         return new Environment("http://notificationURL.com",
                 "https://www.redirection.url.com",
@@ -25,8 +27,9 @@ public class Main {
 
     static PartnerConfiguration aPartnerConfiguration() {
         Map<String, String> partnerConfigurationMap = new HashMap<>();
-        partnerConfigurationMap.put(PartnerConfigurationKeys.UNIFIED_ORDER_URL, "https://apihk.mch.weixin.qq.com/pay/unifiedorder");
-        partnerConfigurationMap.put(PartnerConfigurationKeys.KEY, "5df05d27ce49d87ca38f046325ea3c4d");
+        partnerConfigurationMap.put(PartnerConfigurationKeys.UNIFIED_ORDER_URL, "https://api.mch.weixin.qq.com/pay/unifiedorder");
+        partnerConfigurationMap.put(PartnerConfigurationKeys.SIGN_TYPE, "MD5");
+        partnerConfigurationMap.put(PartnerConfigurationKeys.KEY, keyMD5);
 
         Map<String, String> sensitiveConfigurationMap = new HashMap<>();
         return new PartnerConfiguration(partnerConfigurationMap, sensitiveConfigurationMap);
@@ -40,7 +43,7 @@ public class Main {
     }
 
     public static void main(String[] arg) {
-        HttpService httpService = HttpService.getInstance();
+          HttpService httpService = HttpService.getInstance();
 
         try {
             RequestConfiguration requestConfiguration = new RequestConfiguration(
@@ -60,13 +63,14 @@ public class Main {
                     .productId("12")
                     .appId("wxa5b511bc130a4d9e")
                     .merchantId("110605603")
-                    .subAppId("1")
-                    .subMerchantId("0")
+                    .subMerchantId("345923236")
                     .nonceStr("123456")
-                    .signType("HMAC-SHA256")
+                    .signType(SignType.MD5)
                     .build();
 
-            httpService.unifiedOrder(requestConfiguration, request);
+            Response response  = httpService.unifiedOrder(requestConfiguration, request);
+
+            System.out.println("foo");
         } catch (Exception e) {
             e.printStackTrace();
         }

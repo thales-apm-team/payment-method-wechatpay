@@ -131,7 +131,6 @@ public class HttpClient {
                     .setSocketTimeout(socketTimeout * 1000)
                     .build();
 
-
             try {
                 char[] password = configuration.getContractConfiguration()
                         .getProperty(ContractConfigurationKeys.MERCHANT_ID).getValue().toCharArray();

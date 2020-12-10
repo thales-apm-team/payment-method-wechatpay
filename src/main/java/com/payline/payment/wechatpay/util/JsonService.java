@@ -89,7 +89,7 @@ public class JsonService {
         }
     }
 
-    public static Map<String, String> xmlToMap(String s) {
+    public Map<String, String> xmlToMap(String s) {
         Map<String, String> data = new HashMap<>();
         try {
             DocumentBuilder documentBuilder = WXPayXmlUtil.newDocumentBuilder();
