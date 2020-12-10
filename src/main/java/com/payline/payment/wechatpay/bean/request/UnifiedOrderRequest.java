@@ -1,16 +1,15 @@
-package com.payline.payment.wechatpay.bean;
+package com.payline.payment.wechatpay.bean.request;
 
 import com.google.gson.annotations.SerializedName;
-import lombok.Builder;
+import com.payline.payment.wechatpay.bean.WeChatPayBean;
 import lombok.EqualsAndHashCode;
-import lombok.Getter;
 import lombok.Value;
 import lombok.experimental.SuperBuilder;
 
 @SuperBuilder
 @Value
 @EqualsAndHashCode(callSuper = true)
-public class UnifiedOrderRequest extends Request{
+public class UnifiedOrderRequest extends WeChatPayBean {
     String body;
 
     @SerializedName("out_trade_no")

@@ -51,54 +51,23 @@ public class SignatureUtil {
     public static String generateSignature(final Map<String, String> data, String key, SignType signType) {
         StringBuilder sb = new StringBuilder(
                 data.entrySet().stream()
-                .filter(e -> !e.getKey().equals(FIELD_SIGN))        // remove signature entry
-                .filter(e -> e.getValue().trim().length() > 0)  // remove empty entries
-                .sorted(Map.Entry.comparingByKey())             // sort entry by alphabetical keys
-                .map(e -> e.getKey() + "=" + e.getValue().trim())// create URL encoded String with remaining entries
-                .collect(Collectors.joining("&"))
+                        .filter(e -> !e.getKey().equals(FIELD_SIGN))    // remove signature entry
+                        .filter(e -> e.getValue().trim().length() > 0)  // remove empty entries
+                        .sorted(Map.Entry.comparingByKey())             // sort entry by alphabetical keys
+                        .map(e -> e.getKey() + "=" + e.getValue().trim())// create URL encoded String with remaining entries
+                        .collect(Collectors.joining("&"))
         );
         sb.append("&key=").append(key);                           // add key to the end of created String
 
-        if (signType.equals(SignType.MD5)){
+        if (signType.equals(SignType.MD5)) {
             return hashWithMD5(sb.toString());
-        }else{
+        } else {
             return hashWithSha256(sb.toString(), key);
         }
     }
 
 
-
-    /**
-     * 生成 HMACSHA256
-     *
-     * @param data 待处理数据
-     * @param key  密钥
-     * @return 加密结果
-     * @throws Exception
-     */
-    public static String HMACSHA256(String data, String key) {
-        try {
-            // init cipher
-            Mac sha256_HMAC = Mac.getInstance("HmacSHA256");
-            SecretKeySpec secret_key = new SecretKeySpec(key.getBytes(StandardCharsets.UTF_8), "HmacSHA256");
-            sha256_HMAC.init(secret_key);
-
-            byte[] array = sha256_HMAC.doFinal(data.getBytes(StandardCharsets.UTF_8));
-            StringBuilder sb = new StringBuilder();
-            for (byte item : array) {
-                sb.append(Integer.toHexString((item & 0xFF) | 0x100).substring(1, 3));
-            }
-            return sb.toString().toUpperCase();
-        } catch (NoSuchAlgorithmException e) {
-            e.printStackTrace();
-            // should never append
-        } catch (InvalidKeyException e) {
-            e.printStackTrace();
-        }
-        return null; // todo a changer
-    }
-
-    public String hashWithSha256(String data, String key){
+    public String hashWithSha256(String data, String key) {
         try {
             // init cipher
             Mac sha256_HMAC = Mac.getInstance("HmacSHA256");    // todo passer ca en String
@@ -112,10 +81,10 @@ public class SignatureUtil {
         } catch (InvalidKeyException e) {
             e.printStackTrace();
         }
-         return null; // todo
+        return null; // todo
     }
 
-    public String hashWithMD5(String data){
+    public String hashWithMD5(String data) {
         try {
             MessageDigest md = MessageDigest.getInstance("MD5");
             md.update(data.getBytes());

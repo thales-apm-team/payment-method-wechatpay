@@ -1,11 +1,11 @@
-import com.payline.payment.wechatpay.bean.Response;
-import com.payline.payment.wechatpay.bean.UnifiedOrderRequest;
+import com.payline.payment.wechatpay.bean.response.Response;
+import com.payline.payment.wechatpay.bean.request.UnifiedOrderRequest;
 import com.payline.payment.wechatpay.bean.configuration.RequestConfiguration;
 import com.payline.payment.wechatpay.bean.nested.SignType;
+import com.payline.payment.wechatpay.bean.response.UnifiedOrderResponse;
 import com.payline.payment.wechatpay.service.HttpService;
 import com.payline.payment.wechatpay.util.constant.ContractConfigurationKeys;
 import com.payline.payment.wechatpay.util.constant.PartnerConfigurationKeys;
-import com.payline.payment.wechatpay.util.security.SignatureUtil;
 import com.payline.pmapi.bean.configuration.PartnerConfiguration;
 import com.payline.pmapi.bean.payment.ContractConfiguration;
 import com.payline.pmapi.bean.payment.ContractProperty;
@@ -68,9 +68,9 @@ public class Main {
                     .signType(SignType.MD5)
                     .build();
 
-            Response response  = httpService.unifiedOrder(requestConfiguration, request);
+            UnifiedOrderResponse response  = httpService.unifiedOrder(requestConfiguration, request);
 
-            System.out.println("foo");
+            System.out.println(response.getCodeUrl());
         } catch (Exception e) {
             e.printStackTrace();
         }

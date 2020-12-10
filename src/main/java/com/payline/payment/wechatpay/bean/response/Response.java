@@ -1,24 +1,28 @@
-package com.payline.payment.wechatpay.bean;
+package com.payline.payment.wechatpay.bean.response;
 
 import com.google.gson.annotations.SerializedName;
-import lombok.AllArgsConstructor;
+import com.payline.payment.wechatpay.bean.WeChatPayBean;
+import com.payline.payment.wechatpay.bean.nested.Code;
 import lombok.Getter;
 import lombok.NonNull;
+import lombok.ToString;
+import lombok.experimental.SuperBuilder;
 
-@AllArgsConstructor
+@SuperBuilder
 @Getter
-public class Response {
+@ToString
+public abstract class Response extends WeChatPayBean {
 
     @SerializedName("return_code")
     @NonNull
-    private final String returnCode;
+    private final Code returnCode;
 
-    @SerializedName("return_message")
+    @SerializedName("return_msg")
     private final String returnMessage;
 
     @SerializedName("result_code")
     @NonNull
-    private final String resultCode;
+    private final Code resultCode;
 
     // error fields
     @SerializedName("error_code")
@@ -26,10 +30,4 @@ public class Response {
 
     @SerializedName("error_code_des")
     private final String errorCodeDescription;
-
-    @SerializedName("prepay_id")
-    private final String prepayId;
-
-    @SerializedName("code_url")
-    private final String codeUrl;
 }

@@ -1,7 +1,7 @@
 package com.payline.payment.wechatpay.service.impl;
 
-import com.payline.payment.wechatpay.bean.QueryOrderRequest;
-import com.payline.payment.wechatpay.bean.Response;
+import com.payline.payment.wechatpay.bean.request.QueryOrderRequest;
+import com.payline.payment.wechatpay.bean.response.Response;
 import com.payline.payment.wechatpay.bean.configuration.RequestConfiguration;
 import com.payline.payment.wechatpay.bean.nested.SignType;
 import com.payline.payment.wechatpay.service.HttpService;

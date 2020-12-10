@@ -2,15 +2,15 @@ package com.payline.payment.wechatpay.bean;
 
 import com.google.gson.annotations.SerializedName;
 import com.payline.payment.wechatpay.bean.nested.SignType;
-import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NonNull;
+import lombok.ToString;
 import lombok.experimental.SuperBuilder;
 
 @SuperBuilder
-@AllArgsConstructor
 @Getter
-public abstract class Request {
+@ToString
+public abstract class WeChatPayBean {
     @NonNull
     @SerializedName("appid")
     String appId;
@@ -30,8 +30,8 @@ public abstract class Request {
     @SerializedName("nonce_str")
     String nonceStr;
 
-    @NonNull
     @SerializedName("sign_type")
     SignType signType;
-    String sign;    // todo voir si on garde ce champ signature
+
+    String sign;
 }
