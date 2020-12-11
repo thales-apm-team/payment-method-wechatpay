@@ -1,6 +1,6 @@
 package com.payline.wechatpay.service.impl;
 
-import com.payline.payment.wechatpay.wechatpay.service.QRCodeService;
+import com.payline.payment.wechatpay.service.QRCodeService;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 

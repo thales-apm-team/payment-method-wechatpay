@@ -1,15 +1,16 @@
-package com.payline.payment.wechatpay.wechatpay.service;
+package com.payline.payment.wechatpay.service;
 
 import com.google.zxing.BarcodeFormat;
 import com.google.zxing.WriterException;
 import com.google.zxing.client.j2se.MatrixToImageWriter;
 import com.google.zxing.common.BitMatrix;
 import com.google.zxing.qrcode.QRCodeWriter;
-import com.payline.payment.wechatpay.wechatpay.exception.PluginException;
+import com.payline.payment.wechatpay.exception.PluginException;
 import com.payline.pmapi.bean.common.FailureCause;
 import lombok.extern.log4j.Log4j2;
 
 import java.awt.image.BufferedImage;
+
 @Log4j2
 public class QRCodeService {
 
@@ -22,7 +23,7 @@ public class QRCodeService {
     }
 
     public static QRCodeService getInstance() {
-        return QRCodeService.Holder.instance;
+        return Holder.instance;
     }
     // --- Singleton Holder pattern + initialization END
 
