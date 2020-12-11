@@ -30,7 +30,7 @@ public class PaymentServiceImpl implements PaymentService {
             UnifiedOrderRequest request = UnifiedOrderRequest.builder()
                     .body(paymentRequest.getSoftDescriptor())
                     .outTradeNo(paymentRequest.getTransactionId())
-                    .deviceInfo("WEB")
+                    .deviceInfo(configuration.getPartnerConfiguration().getProperty(PartnerConfigurationKeys.DEVICE_INFO))
                     .feeType(paymentRequest.getAmount().getCurrency().getCurrencyCode())
                     .totalFee(paymentRequest.getAmount().getAmountInSmallestUnit().toString())
                     .spBillCreateIp("123.12.12.123")        // todo on map ca comment? c'est obligatoire

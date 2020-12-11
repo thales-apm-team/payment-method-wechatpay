@@ -11,7 +11,7 @@ import lombok.experimental.SuperBuilder;
 @SuperBuilder
 @Getter
 @ToString
-public abstract class Response extends WeChatPayBean {
+public class Response extends WeChatPayBean {
 
     @SerializedName("return_code")
     @NonNull

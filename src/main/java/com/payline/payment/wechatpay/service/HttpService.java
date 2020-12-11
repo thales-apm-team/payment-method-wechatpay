@@ -1,6 +1,6 @@
 package com.payline.payment.wechatpay.service;
 
-import com.github.wxpay.sdk.WXPayConstants;
+import com.payline.payment.wechatpay.bean.request.DownloadTransactionHistoryRequest;
 import com.payline.payment.wechatpay.bean.request.QueryOrderRequest;
 import com.payline.payment.wechatpay.bean.response.QueryOrderResponse;
 import com.payline.payment.wechatpay.bean.response.Response;
@@ -13,6 +13,7 @@ import com.payline.payment.wechatpay.bean.response.SubmitRefundResponse;
 import com.payline.payment.wechatpay.bean.response.UnifiedOrderResponse;
 import com.payline.payment.wechatpay.exception.InvalidDataException;
 import com.payline.payment.wechatpay.exception.PluginException;
+import com.payline.payment.wechatpay.util.ErrorConverter;
 import com.payline.payment.wechatpay.util.JsonService;
 import com.payline.payment.wechatpay.util.constant.PartnerConfigurationKeys;
 import com.payline.payment.wechatpay.util.http.HttpClient;
@@ -54,6 +55,8 @@ public class HttpService {
 
     public UnifiedOrderResponse unifiedOrder(RequestConfiguration configuration, UnifiedOrderRequest request) {
         try {
+            verifyData(configuration);
+
             // get needed data
             String key = configuration.getPartnerConfiguration().getProperty(PartnerConfigurationKeys.KEY);
 
@@ -82,6 +85,8 @@ public class HttpService {
 
     public QueryOrderResponse queryOrder(RequestConfiguration configuration, QueryOrderRequest request) {
         try {
+            verifyData(configuration);
+
             // get needed data
             String key = configuration.getPartnerConfiguration().getProperty(PartnerConfigurationKeys.KEY);
 
@@ -95,7 +100,7 @@ public class HttpService {
 
             // does the call
             StringResponse response = client.post(uri, headers, body);
-            QueryOrderResponse queryOrderResponse = JsonService.getInstance().fromJson(response.getContent(), QueryOrderResponse.class);
+            QueryOrderResponse queryOrderResponse = jsonService.mapToObject(jsonService.xmlToMap(response.getContent()), QueryOrderResponse.class);
 
             // check response
             checkResponse(queryOrderResponse, key,request.getSignType());
@@ -109,6 +114,8 @@ public class HttpService {
 
     public SubmitRefundResponse submitRefund(RequestConfiguration configuration, SubmitRefundRequest request) {
         try {
+            verifyData(configuration);
+
             // get needed data
             String key = configuration.getPartnerConfiguration().getProperty(PartnerConfigurationKeys.KEY);
 
@@ -122,12 +129,45 @@ public class HttpService {
 
             // does the call
             StringResponse response = client.post(uri, headers, body);
-            SubmitRefundResponse submitRefundResponse = JsonService.getInstance().fromJson(response.getContent(), SubmitRefundResponse.class);
+            SubmitRefundResponse submitRefundResponse = jsonService.mapToObject(jsonService.xmlToMap(response.getContent()), SubmitRefundResponse.class);
 
             // check response
             checkResponse(submitRefundResponse, key,request.getSignType());
 
             return submitRefundResponse;
+        } catch (URISyntaxException e) {
+            e.printStackTrace();
+        }
+        return null;
+    }
+
+    // todo queryRefund
+
+
+    public Response DownloadTransactionHistory(RequestConfiguration configuration, DownloadTransactionHistoryRequest request){
+        try {
+            verifyData(configuration);
+
+            // get needed data
+            String key = configuration.getPartnerConfiguration().getProperty(PartnerConfigurationKeys.KEY);
+
+            URI uri = new URI(configuration
+                    .getPartnerConfiguration()
+                    .getProperty(PartnerConfigurationKeys.DOWNLOAD_TRANSACTIONS_URL)
+            );
+            Header[] headers = initHeaders();
+            Map<String, String> map = jsonService.objectToMap(request);
+            String body = SignatureUtil.generateSignedXml(map, key, request.getSignType());
+
+            // does the call
+            StringResponse response = client.post(uri, headers, body);
+            return  jsonService.mapToObject(jsonService.xmlToMap(response.getContent()), Response.class);
+
+            // check response
+
+
+            // todo
+
         } catch (URISyntaxException e) {
             e.printStackTrace();
         }
@@ -147,7 +187,8 @@ public class HttpService {
                 Code resultCode = response.getResultCode();
                 if (resultCode.equals(Code.FAIL)) {
                     log.error("result_code FAIL in response {}", response.toString());
-                    throw new PluginException(response.getErrorCodeDescription(), FailureCause.INVALID_DATA); // todo f(error_code)
+                    throw new PluginException(response.getErrorCodeDescription()
+                            , ErrorConverter.convert(response.getErrorCode()));
                 }
             } else {
                 log.error("Invalid sign value in XML: {}", response.toString());
@@ -158,7 +199,7 @@ public class HttpService {
 
 
     /**
-     * Check if the datas required for all request are empty or not
+     * Check if the data required for all request are empty or not
      *
      * @param configuration the request configuration
      */
