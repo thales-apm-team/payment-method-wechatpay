@@ -6,6 +6,7 @@ import com.google.zxing.client.j2se.MatrixToImageWriter;
 import com.google.zxing.common.BitMatrix;
 import com.google.zxing.qrcode.QRCodeWriter;
 import com.payline.payment.wechatpay.exception.PluginException;
+import com.payline.payment.wechatpay.util.PluginUtils;
 import com.payline.pmapi.bean.common.FailureCause;
 import lombok.extern.log4j.Log4j2;
 
@@ -35,10 +36,14 @@ public class QRCodeService {
      * @throws PluginException
      */
     public BufferedImage generateMatrix(String data, int size) throws PluginException {
+        if(PluginUtils.isEmpty(data)){
+            log.error("QRCode generation error : Empty data");
+            throw new PluginException("QRCode generation error", FailureCause.INVALID_DATA);
+        }
         try {
             BitMatrix bitMatrix = new QRCodeWriter().encode(data, BarcodeFormat.QR_CODE, size, size);
             return MatrixToImageWriter.toBufferedImage(bitMatrix);
-        }catch (WriterException e){
+        }catch (IllegalArgumentException | WriterException e){
             log.error("QRCode generation error", e);
             throw new PluginException("QRCode generation error", FailureCause.INVALID_DATA);
         }

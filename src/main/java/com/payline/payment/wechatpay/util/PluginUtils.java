@@ -30,7 +30,7 @@ public class PluginUtils {
      * @param stream the InputStream to convert
      * @return the converted String encoded in UTF-8
      */
-    public static String inputStreamToString(InputStream stream) {
+    public String inputStreamToString(InputStream stream) {
         BufferedReader br = new BufferedReader(new InputStreamReader(stream, StandardCharsets.UTF_8));
         return br.lines().collect(Collectors.joining(System.lineSeparator()));
     }
@@ -94,9 +94,9 @@ public class PluginUtils {
         return PluginUtils.truncate(errorCode, ERROR_CODE_MAX_LENGTH);
     }
 
-    private static final String SYMBOLS = "0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ";
-    private static final Random RANDOM = new SecureRandom();
-    public static String generateRandomString(int l) {
+    private final String SYMBOLS = "0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ";
+    private final Random RANDOM = new SecureRandom();
+    public String generateRandomString(int l) {
         char[] nonceChars = new char[l];
         for (int index = 0; index < nonceChars.length; ++index) {
             nonceChars[index] = SYMBOLS.charAt(RANDOM.nextInt(SYMBOLS.length()));
@@ -104,7 +104,7 @@ public class PluginUtils {
         return new String(nonceChars);
     }
 
-    public static String createDate() {
+    public String createDate() {
         String pattern = "yyyyMMdd";
         SimpleDateFormat format = new SimpleDateFormat(pattern);
         return format.format(new Date());
