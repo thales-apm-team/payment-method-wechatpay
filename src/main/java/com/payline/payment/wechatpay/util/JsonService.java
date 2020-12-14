@@ -1,6 +1,5 @@
 package com.payline.payment.wechatpay.util;
 
-import com.github.wxpay.sdk.WXPayXmlUtil;
 import com.google.gson.Gson;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
@@ -92,7 +91,7 @@ public class JsonService {
     public Map<String, String> xmlToMap(String s) {
         Map<String, String> data = new HashMap<>();
         try {
-            DocumentBuilder documentBuilder = WXPayXmlUtil.newDocumentBuilder();
+            DocumentBuilder documentBuilder = newDocumentBuilder();
             InputStream stream = new ByteArrayInputStream(s.getBytes(StandardCharsets.UTF_8));
             Document doc = documentBuilder.parse(stream);
             doc.getDocumentElement().normalize();

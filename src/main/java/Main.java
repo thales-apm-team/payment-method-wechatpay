@@ -1,8 +1,10 @@
+
 import com.google.zxing.BarcodeFormat;
 import com.google.zxing.WriterException;
 import com.google.zxing.client.j2se.MatrixToImageWriter;
 import com.google.zxing.common.BitMatrix;
 import com.google.zxing.qrcode.QRCodeWriter;
+import com.payline.payment.wechatpay.bean.request.DownloadTransactionHistoryRequest;
 import com.payline.payment.wechatpay.bean.response.Response;
 import com.payline.payment.wechatpay.bean.request.UnifiedOrderRequest;
 import com.payline.payment.wechatpay.bean.configuration.RequestConfiguration;
@@ -10,6 +12,7 @@ import com.payline.payment.wechatpay.bean.nested.SignType;
 import com.payline.payment.wechatpay.bean.response.UnifiedOrderResponse;
 import com.payline.payment.wechatpay.service.HttpService;
 import com.payline.payment.wechatpay.service.QRCodeService;
+import com.payline.payment.wechatpay.util.PluginUtils;
 import com.payline.payment.wechatpay.util.constant.ContractConfigurationKeys;
 import com.payline.payment.wechatpay.util.constant.PartnerConfigurationKeys;
 import com.payline.pmapi.bean.configuration.PartnerConfiguration;
@@ -29,6 +32,11 @@ public class Main {
     static String keyMD5 = "2ab9071b06b9f739b950ddb41db2690d";
     static String keySHA256 = "5df05d27ce49d87ca38f046325ea3c4d";
 
+    static String appId = "wxa5b511bc130a4d9e";
+
+    static String merchantId = "110605603";
+    static  String subMerchantId = "345923236";
+
     static Environment anEnvironment() {
         return new Environment("http://notificationURL.com",
                 "https://www.redirection.url.com",
@@ -39,8 +47,11 @@ public class Main {
     static PartnerConfiguration aPartnerConfiguration() {
         Map<String, String> partnerConfigurationMap = new HashMap<>();
         partnerConfigurationMap.put(PartnerConfigurationKeys.UNIFIED_ORDER_URL, "https://api.mch.weixin.qq.com/pay/unifiedorder");
+        partnerConfigurationMap.put(PartnerConfigurationKeys.DOWNLOAD_TRANSACTIONS_URL, "https://api.mch.weixin.qq.com/pay/downloadbill");
         partnerConfigurationMap.put(PartnerConfigurationKeys.SIGN_TYPE, "MD5");
         partnerConfigurationMap.put(PartnerConfigurationKeys.KEY, keyMD5);
+        partnerConfigurationMap.put(PartnerConfigurationKeys.APPID, appId);
+        partnerConfigurationMap.put(PartnerConfigurationKeys.DEVICE_INFO, "WEB");
 
         Map<String, String> sensitiveConfigurationMap = new HashMap<>();
         return new PartnerConfiguration(partnerConfigurationMap, sensitiveConfigurationMap);
@@ -49,7 +60,8 @@ public class Main {
     static ContractConfiguration aContractConfiguration() {
         Map<String, ContractProperty> contractProperties = new HashMap<>();
 
-        contractProperties.put(ContractConfigurationKeys.MERCHANT_ID, new ContractProperty("123123"));
+        contractProperties.put(ContractConfigurationKeys.MERCHANT_ID, new ContractProperty(merchantId));
+        contractProperties.put(ContractConfigurationKeys.SUB_MERCHANT_ID, new ContractProperty(subMerchantId));
         return new ContractConfiguration("wechatPay", contractProperties);
     }
 
@@ -86,6 +98,21 @@ public class Main {
             BufferedImage image = qrCodeService.generateMatrix(response.getCodeUrl(), 300);
             File file = new File("/home/dev/Documents/qrcode");
             ImageIO.write(image, "png", file);
+
+            DownloadTransactionHistoryRequest downloadTransactionHistoryRequest = DownloadTransactionHistoryRequest.builder()
+                    .appId(requestConfiguration.getPartnerConfiguration().getProperty(PartnerConfigurationKeys.APPID))
+                    .merchantId(requestConfiguration.getContractConfiguration().getProperty(ContractConfigurationKeys.MERCHANT_ID).getValue())
+                    .subAppId(requestConfiguration.getPartnerConfiguration().getProperty(PartnerConfigurationKeys.SUB_APPID))
+                    .subMerchantId(requestConfiguration.getContractConfiguration().getProperty(ContractConfigurationKeys.SUB_MERCHANT_ID).getValue())
+                    .nonceStr(PluginUtils.generateRandomString(32))
+                    .signType(SignType.valueOf(requestConfiguration.getPartnerConfiguration().getProperty(PartnerConfigurationKeys.SIGN_TYPE)))
+                    .billDate(PluginUtils.createDate())
+                    .billType("ALL")
+                    .build();
+
+            Response response2 = httpService.DownloadTransactionHistory(requestConfiguration, downloadTransactionHistoryRequest);
+
+            System.out.println(response2.toString());
 
         } catch (Exception e) {
             e.printStackTrace();

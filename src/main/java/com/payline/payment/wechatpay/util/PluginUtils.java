@@ -4,6 +4,8 @@ import com.payline.pmapi.bean.common.Amount;
 import lombok.experimental.UtilityClass;
 
 import java.security.SecureRandom;
+import java.text.SimpleDateFormat;
+import java.util.Date;
 import java.util.Random;
 
 @UtilityClass
@@ -84,5 +86,11 @@ public class PluginUtils {
             nonceChars[index] = SYMBOLS.charAt(RANDOM.nextInt(SYMBOLS.length()));
         }
         return new String(nonceChars);
+    }
+
+    public static String createDate() {
+        String pattern = "yyyyMMdd";
+        SimpleDateFormat format = new SimpleDateFormat(pattern);
+        return format.format(new Date());
     }
 }

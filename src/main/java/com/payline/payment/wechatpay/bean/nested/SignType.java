@@ -8,5 +8,5 @@ import lombok.Getter;
 public enum SignType {
     MD5("MD5"), HMACSHA256("HMAC-SHA256");
 
-    private String type;
+    private final String type;
 }
