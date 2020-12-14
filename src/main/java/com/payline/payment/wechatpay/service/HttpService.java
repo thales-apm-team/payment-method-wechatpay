@@ -1,16 +1,10 @@
 package com.payline.payment.wechatpay.service;
 
-import com.payline.payment.wechatpay.bean.request.DownloadTransactionHistoryRequest;
-import com.payline.payment.wechatpay.bean.request.QueryOrderRequest;
-import com.payline.payment.wechatpay.bean.response.QueryOrderResponse;
-import com.payline.payment.wechatpay.bean.response.Response;
-import com.payline.payment.wechatpay.bean.request.SubmitRefundRequest;
-import com.payline.payment.wechatpay.bean.request.UnifiedOrderRequest;
+import com.payline.payment.wechatpay.bean.request.*;
+import com.payline.payment.wechatpay.bean.response.*;
 import com.payline.payment.wechatpay.bean.configuration.RequestConfiguration;
 import com.payline.payment.wechatpay.bean.nested.Code;
 import com.payline.payment.wechatpay.bean.nested.SignType;
-import com.payline.payment.wechatpay.bean.response.SubmitRefundResponse;
-import com.payline.payment.wechatpay.bean.response.UnifiedOrderResponse;
 import com.payline.payment.wechatpay.exception.InvalidDataException;
 import com.payline.payment.wechatpay.exception.PluginException;
 import com.payline.payment.wechatpay.util.ErrorConverter;
@@ -141,7 +135,35 @@ public class HttpService {
         return null;
     }
 
-    // todo queryRefund
+
+    public QueryRefundResponse queryRefund(RequestConfiguration configuration, QueryRefundRequest request){
+        try {
+            verifyData(configuration);
+
+            // get needed data
+            String key = configuration.getPartnerConfiguration().getProperty(PartnerConfigurationKeys.KEY);
+
+            URI uri = new URI(configuration
+                    .getPartnerConfiguration()
+                    .getProperty(PartnerConfigurationKeys.QUERY_REFUND_URL)
+            );
+            Header[] headers = initHeaders();
+            Map<String, String> map = jsonService.objectToMap(request);
+            String body = SignatureUtil.generateSignedXml(map, key, request.getSignType());
+
+            // does the call
+            StringResponse response = client.post(uri, headers, body);
+            QueryRefundResponse queryRefundResponse = jsonService.mapToObject(jsonService.xmlToMap(response.getContent()), QueryRefundResponse.class);
+
+            // check response
+            checkResponse(queryRefundResponse, key,request.getSignType());
+
+            return queryRefundResponse;
+        } catch (URISyntaxException e) {
+            e.printStackTrace();
+        }
+        return null;
+    }
 
 
     public Response DownloadTransactionHistory(RequestConfiguration configuration, DownloadTransactionHistoryRequest request){

@@ -1,15 +1,22 @@
 package com.payline.payment.wechatpay.service.impl;
 
-import com.payline.payment.wechatpay.bean.request.SubmitRefundRequest;
 import com.payline.payment.wechatpay.bean.configuration.RequestConfiguration;
+import com.payline.payment.wechatpay.bean.nested.RefundStatus;
 import com.payline.payment.wechatpay.bean.nested.SignType;
+import com.payline.payment.wechatpay.bean.request.QueryRefundRequest;
+import com.payline.payment.wechatpay.bean.request.SubmitRefundRequest;
+import com.payline.payment.wechatpay.bean.response.QueryRefundResponse;
+import com.payline.payment.wechatpay.bean.response.SubmitRefundResponse;
 import com.payline.payment.wechatpay.service.HttpService;
 import com.payline.payment.wechatpay.service.RequestConfigurationService;
 import com.payline.payment.wechatpay.util.PluginUtils;
 import com.payline.payment.wechatpay.util.constant.ContractConfigurationKeys;
 import com.payline.payment.wechatpay.util.constant.PartnerConfigurationKeys;
+import com.payline.pmapi.bean.common.FailureCause;
 import com.payline.pmapi.bean.refund.request.RefundRequest;
 import com.payline.pmapi.bean.refund.response.RefundResponse;
+import com.payline.pmapi.bean.refund.response.impl.RefundResponseFailure;
+import com.payline.pmapi.bean.refund.response.impl.RefundResponseSuccess;
 import com.payline.pmapi.service.RefundService;
 
 public class RefundServiceImpl implements RefundService {
@@ -17,9 +24,10 @@ public class RefundServiceImpl implements RefundService {
 
     @Override
     public RefundResponse refundRequest(RefundRequest refundRequest) {
+        RefundResponse response;
         RequestConfiguration configuration = RequestConfigurationService.getInstance().build(refundRequest);
 
-
+        // create refund
         SubmitRefundRequest submitRefundRequest = SubmitRefundRequest.builder()
                 .appId(configuration.getPartnerConfiguration().getProperty(PartnerConfigurationKeys.APPID))
                 .merchantId(configuration.getContractConfiguration().getProperty(ContractConfigurationKeys.MERCHANT_ID).getValue())
@@ -35,8 +43,57 @@ public class RefundServiceImpl implements RefundService {
                 .refundFeeType(refundRequest.getAmount().getCurrency().getCurrencyCode())
                 .build();
 
-        httpService.submitRefund(configuration, submitRefundRequest);
-        return null;
+        SubmitRefundResponse submitRefundResponse = httpService.submitRefund(configuration, submitRefundRequest);
+        String refundId = submitRefundResponse.getRefundId();
+
+        // ask for refund status
+        QueryRefundRequest queryRefundRequest = QueryRefundRequest.builder()
+                .appId(configuration.getPartnerConfiguration().getProperty(PartnerConfigurationKeys.APPID))
+                .merchantId(configuration.getContractConfiguration().getProperty(ContractConfigurationKeys.MERCHANT_ID).getValue())
+                .subAppId(configuration.getPartnerConfiguration().getProperty(PartnerConfigurationKeys.SUB_APPID))
+                .subMerchantId(configuration.getContractConfiguration().getProperty(ContractConfigurationKeys.SUB_MERCHANT_ID).getValue())
+                .nonceStr(PluginUtils.generateRandomString(32))
+                .signType(SignType.valueOf(configuration.getPartnerConfiguration().getProperty(PartnerConfigurationKeys.SIGN_TYPE)))
+                .refundId(refundId)
+                .build();
+
+        QueryRefundResponse queryRefundResponse = httpService.queryRefund(configuration, queryRefundRequest);
+
+        // create RefundResponse from refund status
+        RefundStatus refundStatus = queryRefundResponse.getRefundStatus();
+        switch (refundStatus) {
+            case SUCCESS:
+                response = RefundResponseSuccess.RefundResponseSuccessBuilder
+                        .aRefundResponseSuccess()
+                        .withPartnerTransactionId(refundId)
+                        .withStatusCode(refundStatus.name())
+                        .build();
+                break;
+            case PROCESSING:
+                response = RefundResponseSuccess.RefundResponseSuccessBuilder
+                        .aRefundResponseSuccess()
+                        .withPartnerTransactionId(refundId)
+                        .withStatusCode("PENDING")
+                        .build();
+                break;
+            case REFUNDCLOSE:
+                response = RefundResponseFailure.RefundResponseFailureBuilder
+                        .aRefundResponseFailure()
+                        .withPartnerTransactionId(refundId)
+                        .withErrorCode(refundStatus.name())
+                        .withFailureCause(FailureCause.REFUSED)
+                        .build();
+                break;
+            default:
+                response = RefundResponseFailure.RefundResponseFailureBuilder
+                        .aRefundResponseFailure()
+                        .withPartnerTransactionId(refundId)
+                        .withErrorCode(refundStatus.name())
+                        .withFailureCause(FailureCause.INVALID_DATA)        // todo MàJ doc
+                        .build();
+        }
+
+        return response;
     }
 
     @Override
