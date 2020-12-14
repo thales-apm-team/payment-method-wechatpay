@@ -66,7 +66,7 @@ public class SignatureUtil {
         }
     }
 
-
+    // todo a virer plus tard
     public String hashWithSha256(String data, String key) {
         try {
             // init cipher
@@ -75,7 +75,6 @@ public class SignatureUtil {
             sha256_HMAC.init(secret_key);
 
             return Hex.encodeHexString(sha256_HMAC.doFinal(data.getBytes(StandardCharsets.UTF_8))).toUpperCase();
-
         } catch (NoSuchAlgorithmException e) {
             e.printStackTrace();
         } catch (InvalidKeyException e) {

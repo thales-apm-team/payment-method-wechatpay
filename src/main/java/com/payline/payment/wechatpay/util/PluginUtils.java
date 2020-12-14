@@ -3,10 +3,15 @@ package com.payline.payment.wechatpay.util;
 import com.payline.pmapi.bean.common.Amount;
 import lombok.experimental.UtilityClass;
 
+import java.io.BufferedReader;
+import java.io.InputStream;
+import java.io.InputStreamReader;
+import java.nio.charset.StandardCharsets;
 import java.security.SecureRandom;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.Random;
+import java.util.stream.Collectors;
 
 @UtilityClass
 public class PluginUtils {
@@ -17,6 +22,17 @@ public class PluginUtils {
             value = value.substring(0, length);
         }
         return value;
+    }
+
+    /**
+     * Convert an InputStream into a String
+     *
+     * @param stream the InputStream to convert
+     * @return the converted String encoded in UTF-8
+     */
+    public static String inputStreamToString(InputStream stream) {
+        BufferedReader br = new BufferedReader(new InputStreamReader(stream, StandardCharsets.UTF_8));
+        return br.lines().collect(Collectors.joining(System.lineSeparator()));
     }
 
 

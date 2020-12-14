@@ -1,14 +1,8 @@
-
-import com.google.zxing.BarcodeFormat;
-import com.google.zxing.WriterException;
-import com.google.zxing.client.j2se.MatrixToImageWriter;
-import com.google.zxing.common.BitMatrix;
-import com.google.zxing.qrcode.QRCodeWriter;
-import com.payline.payment.wechatpay.bean.request.DownloadTransactionHistoryRequest;
-import com.payline.payment.wechatpay.bean.response.Response;
-import com.payline.payment.wechatpay.bean.request.UnifiedOrderRequest;
 import com.payline.payment.wechatpay.bean.configuration.RequestConfiguration;
 import com.payline.payment.wechatpay.bean.nested.SignType;
+import com.payline.payment.wechatpay.bean.request.DownloadTransactionHistoryRequest;
+import com.payline.payment.wechatpay.bean.request.UnifiedOrderRequest;
+import com.payline.payment.wechatpay.bean.response.Response;
 import com.payline.payment.wechatpay.bean.response.UnifiedOrderResponse;
 import com.payline.payment.wechatpay.service.HttpService;
 import com.payline.payment.wechatpay.service.QRCodeService;
@@ -23,8 +17,6 @@ import com.payline.pmapi.bean.payment.Environment;
 import javax.imageio.ImageIO;
 import java.awt.image.BufferedImage;
 import java.io.File;
-import java.io.FileOutputStream;
-import java.io.IOException;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -35,7 +27,7 @@ public class Main {
     static String appId = "wxa5b511bc130a4d9e";
 
     static String merchantId = "110605603";
-    static  String subMerchantId = "345923236";
+    static String subMerchantId = "345923236";
 
     static Environment anEnvironment() {
         return new Environment("http://notificationURL.com",
@@ -66,7 +58,7 @@ public class Main {
     }
 
     public static void main(String[] arg) {
-          HttpService httpService = HttpService.getInstance();
+        HttpService httpService = HttpService.getInstance();
         QRCodeService qrCodeService = QRCodeService.getInstance();
         try {
             RequestConfiguration requestConfiguration = new RequestConfiguration(
@@ -91,7 +83,7 @@ public class Main {
                     .signType(SignType.MD5)
                     .build();
 
-            UnifiedOrderResponse response  = httpService.unifiedOrder(requestConfiguration, request);
+            UnifiedOrderResponse response = httpService.unifiedOrder(requestConfiguration, request);
 
             System.out.println(response.getCodeUrl());
 
