@@ -33,6 +33,9 @@ dependencies {
     // log
     implementation group: 'org.apache.logging.log4j', name: 'log4j-core', version: log4jVersion
     implementation group: 'org.apache.logging.log4j', name: 'log4j-api', version: log4jVersion
+    
+    // QRCode
+    implementation group: 'com.google.zxing', name: 'javase', version: '3.4.1'
 
     // lombok
     compileOnly group: 'org.projectlombok', name: 'lombok', version: lombokVersion
