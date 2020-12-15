@@ -7,6 +7,7 @@ import com.payline.payment.wechatpay.bean.request.QueryRefundRequest;
 import com.payline.payment.wechatpay.bean.request.SubmitRefundRequest;
 import com.payline.payment.wechatpay.bean.response.QueryRefundResponse;
 import com.payline.payment.wechatpay.bean.response.SubmitRefundResponse;
+import com.payline.payment.wechatpay.exception.PluginException;
 import com.payline.payment.wechatpay.service.HttpService;
 import com.payline.payment.wechatpay.service.RequestConfigurationService;
 import com.payline.payment.wechatpay.util.PluginUtils;
@@ -18,79 +19,96 @@ import com.payline.pmapi.bean.refund.response.RefundResponse;
 import com.payline.pmapi.bean.refund.response.impl.RefundResponseFailure;
 import com.payline.pmapi.bean.refund.response.impl.RefundResponseSuccess;
 import com.payline.pmapi.service.RefundService;
+import lombok.extern.log4j.Log4j2;
 
+@Log4j2
 public class RefundServiceImpl implements RefundService {
     HttpService httpService = HttpService.getInstance();
 
     @Override
     public RefundResponse refundRequest(RefundRequest refundRequest) {
         RefundResponse response;
-        RequestConfiguration configuration = RequestConfigurationService.getInstance().build(refundRequest);
 
-        // create refund
-        SubmitRefundRequest submitRefundRequest = SubmitRefundRequest.builder()
-                .appId(configuration.getPartnerConfiguration().getProperty(PartnerConfigurationKeys.APPID))
-                .merchantId(configuration.getContractConfiguration().getProperty(ContractConfigurationKeys.MERCHANT_ID).getValue())
-                .subAppId(configuration.getPartnerConfiguration().getProperty(PartnerConfigurationKeys.SUB_APPID))
-                .subMerchantId(configuration.getContractConfiguration().getProperty(ContractConfigurationKeys.SUB_MERCHANT_ID).getValue())
-                .nonceStr(PluginUtils.generateRandomString(32))
-                .signType(SignType.valueOf(configuration.getPartnerConfiguration().getProperty(PartnerConfigurationKeys.SIGN_TYPE)))
+        try {
+            RequestConfiguration configuration = RequestConfigurationService.getInstance().build(refundRequest);
 
-                .transactionId(refundRequest.getPartnerTransactionId())
-                .outTradeNo(refundRequest.getTransactionId())
-                .totalFee(refundRequest.getAmount().getAmountInSmallestUnit().toString())
-                .refundFee(refundRequest.getAmount().getAmountInSmallestUnit().toString())
-                .refundFeeType(refundRequest.getAmount().getCurrency().getCurrencyCode())
-                .build();
+            // create refund
+            SubmitRefundRequest submitRefundRequest = SubmitRefundRequest.builder()
+                    .appId(configuration.getPartnerConfiguration().getProperty(PartnerConfigurationKeys.APPID))
+                    .merchantId(configuration.getContractConfiguration().getProperty(ContractConfigurationKeys.MERCHANT_ID).getValue())
+                    .subAppId(configuration.getPartnerConfiguration().getProperty(PartnerConfigurationKeys.SUB_APPID))
+                    .subMerchantId(configuration.getContractConfiguration().getProperty(ContractConfigurationKeys.SUB_MERCHANT_ID).getValue())
+                    .nonceStr(PluginUtils.generateRandomString(32))
+                    .signType(SignType.valueOf(configuration.getPartnerConfiguration().getProperty(PartnerConfigurationKeys.SIGN_TYPE)))
 
-        SubmitRefundResponse submitRefundResponse = httpService.submitRefund(configuration, submitRefundRequest);
-        String refundId = submitRefundResponse.getRefundId();
+                    .transactionId(refundRequest.getPartnerTransactionId())
+                    .outTradeNo(refundRequest.getTransactionId())
+                    .totalFee(refundRequest.getAmount().getAmountInSmallestUnit().toString())
+                    .refundFee(refundRequest.getAmount().getAmountInSmallestUnit().toString())
+                    .refundFeeType(refundRequest.getAmount().getCurrency().getCurrencyCode())
+                    .build();
 
-        // ask for refund status
-        QueryRefundRequest queryRefundRequest = QueryRefundRequest.builder()
-                .appId(configuration.getPartnerConfiguration().getProperty(PartnerConfigurationKeys.APPID))
-                .merchantId(configuration.getContractConfiguration().getProperty(ContractConfigurationKeys.MERCHANT_ID).getValue())
-                .subAppId(configuration.getPartnerConfiguration().getProperty(PartnerConfigurationKeys.SUB_APPID))
-                .subMerchantId(configuration.getContractConfiguration().getProperty(ContractConfigurationKeys.SUB_MERCHANT_ID).getValue())
-                .nonceStr(PluginUtils.generateRandomString(32))
-                .signType(SignType.valueOf(configuration.getPartnerConfiguration().getProperty(PartnerConfigurationKeys.SIGN_TYPE)))
-                .refundId(refundId)
-                .build();
+            SubmitRefundResponse submitRefundResponse = httpService.submitRefund(configuration, submitRefundRequest);
+            String refundId = submitRefundResponse.getRefundId();
 
-        QueryRefundResponse queryRefundResponse = httpService.queryRefund(configuration, queryRefundRequest);
+            // ask for refund status
+            QueryRefundRequest queryRefundRequest = QueryRefundRequest.builder()
+                    .appId(configuration.getPartnerConfiguration().getProperty(PartnerConfigurationKeys.APPID))
+                    .merchantId(configuration.getContractConfiguration().getProperty(ContractConfigurationKeys.MERCHANT_ID).getValue())
+                    .subAppId(configuration.getPartnerConfiguration().getProperty(PartnerConfigurationKeys.SUB_APPID))
+                    .subMerchantId(configuration.getContractConfiguration().getProperty(ContractConfigurationKeys.SUB_MERCHANT_ID).getValue())
+                    .nonceStr(PluginUtils.generateRandomString(32))
+                    .signType(SignType.valueOf(configuration.getPartnerConfiguration().getProperty(PartnerConfigurationKeys.SIGN_TYPE)))
+                    .refundId(refundId)
+                    .build();
 
-        // create RefundResponse from refund status
-        RefundStatus refundStatus = queryRefundResponse.getRefundStatus();
-        switch (refundStatus) {
-            case SUCCESS:
-                response = RefundResponseSuccess.RefundResponseSuccessBuilder
-                        .aRefundResponseSuccess()
-                        .withPartnerTransactionId(refundId)
-                        .withStatusCode(refundStatus.name())
-                        .build();
-                break;
-            case PROCESSING:
-                response = RefundResponseSuccess.RefundResponseSuccessBuilder
-                        .aRefundResponseSuccess()
-                        .withPartnerTransactionId(refundId)
-                        .withStatusCode("PENDING")
-                        .build();
-                break;
-            case REFUNDCLOSE:
-                response = RefundResponseFailure.RefundResponseFailureBuilder
-                        .aRefundResponseFailure()
-                        .withPartnerTransactionId(refundId)
-                        .withErrorCode(refundStatus.name())
-                        .withFailureCause(FailureCause.REFUSED)
-                        .build();
-                break;
-            default:
-                response = RefundResponseFailure.RefundResponseFailureBuilder
-                        .aRefundResponseFailure()
-                        .withPartnerTransactionId(refundId)
-                        .withErrorCode(refundStatus.name())
-                        .withFailureCause(FailureCause.INVALID_DATA)        // todo MàJ doc
-                        .build();
+            QueryRefundResponse queryRefundResponse = httpService.queryRefund(configuration, queryRefundRequest);
+
+            // create RefundResponse from refund status
+            RefundStatus refundStatus = queryRefundResponse.getRefundStatus();
+            switch (refundStatus) {
+                case SUCCESS:
+                    response = RefundResponseSuccess.RefundResponseSuccessBuilder
+                            .aRefundResponseSuccess()
+                            .withPartnerTransactionId(refundId)
+                            .withStatusCode(refundStatus.name())
+                            .build();
+                    break;
+                case PROCESSING:
+                    response = RefundResponseSuccess.RefundResponseSuccessBuilder
+                            .aRefundResponseSuccess()
+                            .withPartnerTransactionId(refundId)
+                            .withStatusCode("PENDING")
+                            .build();
+                    break;
+                case REFUNDCLOSE:
+                    response = RefundResponseFailure.RefundResponseFailureBuilder
+                            .aRefundResponseFailure()
+                            .withPartnerTransactionId(refundId)
+                            .withErrorCode(refundStatus.name())
+                            .withFailureCause(FailureCause.REFUSED)
+                            .build();
+                    break;
+                default:
+                    response = RefundResponseFailure.RefundResponseFailureBuilder
+                            .aRefundResponseFailure()
+                            .withPartnerTransactionId(refundId)
+                            .withErrorCode(refundStatus.name())
+                            .withFailureCause(FailureCause.INVALID_DATA)        // todo MàJ doc
+                            .build();
+            }
+
+        } catch (PluginException e) {
+            log.info("a PluginException occurred", e);
+            response = e.toRefundResponseFailureBuilder().build();
+
+        } catch (RuntimeException e) {
+            log.error("Unexpected plugin error", e);
+            response = RefundResponseFailure.RefundResponseFailureBuilder
+                    .aRefundResponseFailure()
+                    .withErrorCode(PluginUtils.runtimeErrorCode(e))
+                    .withFailureCause(FailureCause.INTERNAL_ERROR)
+                    .build();
         }
 
         return response;

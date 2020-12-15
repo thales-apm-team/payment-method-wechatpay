@@ -1,26 +1,24 @@
 package com.payline.payment.wechatpay.service.impl;
 
 import com.payline.payment.wechatpay.service.LogoPaymentFormConfigurationService;
+import com.payline.payment.wechatpay.util.i18n.I18nService;
 import com.payline.pmapi.bean.paymentform.bean.form.NoFieldForm;
 import com.payline.pmapi.bean.paymentform.request.PaymentFormConfigurationRequest;
 import com.payline.pmapi.bean.paymentform.response.configuration.PaymentFormConfigurationResponse;
 import com.payline.pmapi.bean.paymentform.response.configuration.impl.PaymentFormConfigurationResponseSpecific;
 
 public class PaymentFormConfigurationServiceImpl extends LogoPaymentFormConfigurationService {
+    private static final I18nService i18n = I18nService.getInstance();
 
     @Override
     public PaymentFormConfigurationResponse getPaymentFormConfiguration(PaymentFormConfigurationRequest paymentFormConfigurationRequest) {
-        final NoFieldForm noFieldForm = NoFieldForm
-                .NoFieldFormBuilder
-                .aNoFieldForm()
+        NoFieldForm noFieldForm = NoFieldForm.NoFieldFormBuilder.aNoFieldForm()
                 .withDisplayButton(true)
-                .withButtonText("") // todo
-                .withDescription("")    // todo
+                .withButtonText(i18n.getMessage("form.button.text", paymentFormConfigurationRequest.getLocale()))
+                .withDescription(i18n.getMessage("form.button.description", paymentFormConfigurationRequest.getLocale()))
                 .build();
 
-        return PaymentFormConfigurationResponseSpecific
-                .PaymentFormConfigurationResponseSpecificBuilder
-                .aPaymentFormConfigurationResponseSpecific()
+        return PaymentFormConfigurationResponseSpecific.PaymentFormConfigurationResponseSpecificBuilder.aPaymentFormConfigurationResponseSpecific()
                 .withPaymentForm(noFieldForm)
                 .build();
     }

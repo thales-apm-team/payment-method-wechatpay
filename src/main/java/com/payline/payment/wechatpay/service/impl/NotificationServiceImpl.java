@@ -6,6 +6,7 @@ import com.payline.payment.wechatpay.bean.nested.TradeState;
 import com.payline.payment.wechatpay.bean.request.QueryOrderRequest;
 import com.payline.payment.wechatpay.bean.response.NotificationMessage;
 import com.payline.payment.wechatpay.bean.response.QueryOrderResponse;
+import com.payline.payment.wechatpay.exception.PluginException;
 import com.payline.payment.wechatpay.service.HttpService;
 import com.payline.payment.wechatpay.service.RequestConfigurationService;
 import com.payline.payment.wechatpay.util.JsonService;
@@ -23,75 +24,95 @@ import com.payline.pmapi.bean.payment.response.buyerpaymentidentifier.BuyerPayme
 import com.payline.pmapi.bean.payment.response.buyerpaymentidentifier.impl.EmptyTransactionDetails;
 import com.payline.pmapi.bean.payment.response.impl.PaymentResponseFailure;
 import com.payline.pmapi.bean.payment.response.impl.PaymentResponseSuccess;
+import com.payline.pmapi.bean.refund.response.impl.RefundResponseFailure;
 import com.payline.pmapi.service.NotificationService;
+import lombok.extern.log4j.Log4j2;
 
+@Log4j2
 public class NotificationServiceImpl implements NotificationService {
     JsonService jsonService = JsonService.getInstance();
     HttpService httpService = HttpService.getInstance();
 
     @Override
     public NotificationResponse parse(NotificationRequest notificationRequest) {
-        // prepare data
-        RequestConfiguration configuration = RequestConfigurationService.getInstance().build(notificationRequest);
+        // init data
         PaymentResponse paymentResponse;
         NotificationResponse notificationResponse;
+        String partnerTransactionId = "UNKNOWN";
 
-        // get notification data
-        String notificationMessage = PluginUtils.inputStreamToString(notificationRequest.getContent());
-        NotificationMessage message = jsonService.mapToObject(jsonService.xmlToMap(notificationMessage), NotificationMessage.class);
-        String transactionId = message.getTransactionId();
+        try {
 
-        // call WeChatPay API to get the transaction status
-        QueryOrderRequest queryOrderRequest = QueryOrderRequest.builder()
-                .appId(configuration.getPartnerConfiguration().getProperty(PartnerConfigurationKeys.APPID))
-                .merchantId(configuration.getContractConfiguration().getProperty(ContractConfigurationKeys.MERCHANT_ID).getValue())
-                .subAppId(configuration.getPartnerConfiguration().getProperty(PartnerConfigurationKeys.SUB_APPID))
-                .subMerchantId(configuration.getContractConfiguration().getProperty(ContractConfigurationKeys.SUB_MERCHANT_ID).getValue())
-                .deviceInfo("WEB")
-                .transactionId(transactionId)
-                .nonceStr(PluginUtils.generateRandomString(32))
-                .signType(SignType.valueOf( configuration.getPartnerConfiguration().getProperty(PartnerConfigurationKeys.SIGN_TYPE)))
-                .build();
+            // prepare data
+            RequestConfiguration configuration = RequestConfigurationService.getInstance().build(notificationRequest);
 
-        QueryOrderResponse queryOrderResponse = httpService.queryOrder(configuration, queryOrderRequest);
+            // get notification data
+            String notificationMessage = PluginUtils.inputStreamToString(notificationRequest.getContent());
+            NotificationMessage message = jsonService.mapToObject(jsonService.xmlToMap(notificationMessage), NotificationMessage.class);
+            String transactionId = message.getTransactionId();
 
-        // check transaction status
-        TradeState tradeState = queryOrderResponse.getTradeState();
-        String partnerTransactionId = queryOrderResponse.getTransactionId();
-        BuyerPaymentId buyerPaymentId = new EmptyTransactionDetails();
-
-        if (tradeState.equals(TradeState.SUCCESS)) {
-            paymentResponse = PaymentResponseSuccess.PaymentResponseSuccessBuilder
-                    .aPaymentResponseSuccess()
-                    .withPartnerTransactionId(partnerTransactionId)
-                    .withStatusCode(tradeState.name())
-                    .withTransactionDetails(buyerPaymentId)
+            // call WeChatPay API to get the transaction status
+            QueryOrderRequest queryOrderRequest = QueryOrderRequest.builder()
+                    .appId(configuration.getPartnerConfiguration().getProperty(PartnerConfigurationKeys.APPID))
+                    .merchantId(configuration.getContractConfiguration().getProperty(ContractConfigurationKeys.MERCHANT_ID).getValue())
+                    .subAppId(configuration.getPartnerConfiguration().getProperty(PartnerConfigurationKeys.SUB_APPID))
+                    .subMerchantId(configuration.getContractConfiguration().getProperty(ContractConfigurationKeys.SUB_MERCHANT_ID).getValue())
+                    .deviceInfo(configuration.getPartnerConfiguration().getProperty(PartnerConfigurationKeys.DEVICE_INFO))
+                    .transactionId(transactionId)
+                    .nonceStr(PluginUtils.generateRandomString(32))
+                    .signType(SignType.valueOf(configuration.getPartnerConfiguration().getProperty(PartnerConfigurationKeys.SIGN_TYPE)))
                     .build();
-        } else {
+
+            QueryOrderResponse queryOrderResponse = httpService.queryOrder(configuration, queryOrderRequest);
+
+            // check transaction status
+            TradeState tradeState = queryOrderResponse.getTradeState();
+            partnerTransactionId = queryOrderResponse.getTransactionId();
+            BuyerPaymentId buyerPaymentId = new EmptyTransactionDetails();
+
+            if (tradeState.equals(TradeState.SUCCESS)) {
+                paymentResponse = PaymentResponseSuccess.PaymentResponseSuccessBuilder
+                        .aPaymentResponseSuccess()
+                        .withPartnerTransactionId(partnerTransactionId)
+                        .withStatusCode(tradeState.name())
+                        .withTransactionDetails(buyerPaymentId)
+                        .build();
+            } else {
+                paymentResponse = PaymentResponseFailure.PaymentResponseFailureBuilder
+                        .aPaymentResponseFailure()
+                        .withPartnerTransactionId(partnerTransactionId)
+                        .withErrorCode(queryOrderResponse.getErrorCode())
+                        .withFailureCause(FailureCause.PARTNER_UNKNOWN_ERROR) // todo c'est quoi qui va la?
+                        .withTransactionDetails(buyerPaymentId)
+                        .build();
+            }
+
+        }catch (PluginException e) {
+            log.info("a PluginException occurred", e);
+            paymentResponse = e.toPaymentResponseFailureBuilder().build();
+
+        } catch (RuntimeException e) {
+            log.error("Unexpected plugin error", e);
             paymentResponse = PaymentResponseFailure.PaymentResponseFailureBuilder
                     .aPaymentResponseFailure()
-                    .withPartnerTransactionId(partnerTransactionId)
-                    .withErrorCode(queryOrderResponse.getErrorCode())
-                    .withFailureCause(FailureCause.PARTNER_UNKNOWN_ERROR) // todo c'est quoi qui va la?
-                    .withTransactionDetails(buyerPaymentId)
+                    .withErrorCode(PluginUtils.runtimeErrorCode(e))
+                    .withFailureCause(FailureCause.INTERNAL_ERROR)
                     .build();
         }
 
-            String httpBody = "";   // todo retrouver ce qu'on doit répondre
-            TransactionCorrelationId correlationId = TransactionCorrelationId.TransactionCorrelationIdBuilder
-                    .aCorrelationIdBuilder()
-                    .withType(TransactionCorrelationId.CorrelationIdType.PARTNER_TRANSACTION_ID)
-                    .withValue(partnerTransactionId)
-                    .build();
+        String httpBody = "<xml><return_code><![CDATA[SUCCESS]]></return_code><return_msg><![CDATA[OK]]></return_msg></xml>";   // todo on laisse ca en dur ou on bidouille?
+        TransactionCorrelationId correlationId = TransactionCorrelationId.TransactionCorrelationIdBuilder
+                .aCorrelationIdBuilder()
+                .withType(TransactionCorrelationId.CorrelationIdType.PARTNER_TRANSACTION_ID)
+                .withValue(partnerTransactionId)
+                .build();
 
-            notificationResponse = PaymentResponseByNotificationResponse.PaymentResponseByNotificationResponseBuilder
-                    .aPaymentResponseByNotificationResponseBuilder()
-                    .withPaymentResponse(paymentResponse)
-                    .withHttpBody(httpBody)
-                    .withHttpStatus(200)
-                    .withTransactionCorrelationId(correlationId)
-                    .build();
-
+        notificationResponse = PaymentResponseByNotificationResponse.PaymentResponseByNotificationResponseBuilder
+                .aPaymentResponseByNotificationResponseBuilder()
+                .withPaymentResponse(paymentResponse)
+                .withHttpBody(httpBody)
+                .withHttpStatus(200)
+                .withTransactionCorrelationId(correlationId)
+                .build();
 
             return notificationResponse;
         }

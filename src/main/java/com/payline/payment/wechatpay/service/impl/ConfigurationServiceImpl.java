@@ -90,12 +90,11 @@ public class ConfigurationServiceImpl implements ConfigurationService {
                 }
             }
         } catch (PluginException e) {
-            log.info("unable to execute PaymentService#paymentRequest", e);
+            log.info("a PluginException occurred", e);
             errors.put(GENERIC_ERROR, e.getMessage());
         } catch (RuntimeException e) {
             log.error("Unexpected plugin error", e);
             errors.put(GENERIC_ERROR, e.getMessage());
-
         }
 
         return errors;
@@ -129,27 +128,6 @@ public class ConfigurationServiceImpl implements ConfigurationService {
         inputParameter.setDescription(i18n.getMessage(I18N_CONTRACT_PREFIX + key + ".description", locale));
         inputParameter.setRequired(required);
         return inputParameter;
-    }
-
-    /**
-     * Build and return a new <code>ListBoxParameter</code> for the contract configuration.
-     *
-     * @param key          The parameter key
-     * @param values       All the possible values for the list box
-     * @param defaultValue The key of the default value (which will be selected by default)
-     * @param required     Is this parameter required ?
-     * @param locale       The current locale
-     * @return The new list box parameter
-     */
-    private ListBoxParameter newListBoxParameter(String key, Map<String, String> values, String defaultValue, boolean required, Locale locale) {
-        ListBoxParameter listBoxParameter = new ListBoxParameter();
-        listBoxParameter.setKey(key);
-        listBoxParameter.setLabel(i18n.getMessage(I18N_CONTRACT_PREFIX + key + ".label", locale));
-        listBoxParameter.setDescription(i18n.getMessage(I18N_CONTRACT_PREFIX + key + ".description", locale));
-        listBoxParameter.setList(values);
-        listBoxParameter.setRequired(required);
-        listBoxParameter.setValue(defaultValue);
-        return listBoxParameter;
     }
 
 }
