@@ -48,8 +48,6 @@ class ErrorConverterTest {
     @ParameterizedTest
     @MethodSource("errorCodes")
     void getFailureCause(String errorCode, FailureCause cause) {
-        FailureCause failureCause = ErrorConverter.convert(errorCode);
-        System.out.println(failureCause.toString());
-        Assertions.assertEquals(cause, failureCause);
+        Assertions.assertEquals(cause, ErrorConverter.convert(errorCode));
     }
 }
