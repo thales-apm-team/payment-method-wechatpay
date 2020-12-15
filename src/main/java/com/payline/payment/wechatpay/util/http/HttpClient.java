@@ -195,7 +195,7 @@ public class HttpClient {
      * @return The response converted as a {@link StringResponse}.
      * @throws PluginException If an error repeatedly occurs and no proper response is obtained.
      */
-    StringResponse execute(HttpRequestBase httpRequest) {
+    public StringResponse execute(HttpRequestBase httpRequest) {
         StringResponse strResponse = null;
         int attempts = 1;
 

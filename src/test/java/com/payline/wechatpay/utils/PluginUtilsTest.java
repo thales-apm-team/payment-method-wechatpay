@@ -36,7 +36,7 @@ class PluginUtilsTest {
         String dateInString = "12/12/2012";
 
         Date date = formatter.parse(dateInString);
-        Assertions.assertEquals("20201214", PluginUtils.createDate());
+        Assertions.assertEquals(8, PluginUtils.createDate().length());
     }
     @Test
     void createStringAmount() {
