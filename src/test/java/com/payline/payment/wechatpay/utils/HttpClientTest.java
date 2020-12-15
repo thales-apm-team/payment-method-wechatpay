@@ -1,4 +1,4 @@
-package com.payline.wechatpay.utils;
+package com.payline.payment.wechatpay.utils;
 
 import com.payline.payment.wechatpay.exception.PluginException;
 import com.payline.payment.wechatpay.util.http.HttpClient;
@@ -15,7 +15,7 @@ import org.mockito.Spy;
 
 import java.io.IOException;
 
-import static com.payline.wechatpay.utils.HttpTestUtils.mockHttpResponse;
+import static com.payline.payment.wechatpay.utils.HttpTestUtils.mockHttpResponse;
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.*;
 

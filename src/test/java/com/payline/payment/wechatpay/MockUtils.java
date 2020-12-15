@@ -1,4 +1,4 @@
-package com.payline.wechatpay;
+package com.payline.payment.wechatpay;
 
 import com.payline.payment.wechatpay.util.constant.ContractConfigurationKeys;
 import com.payline.payment.wechatpay.util.constant.PartnerConfigurationKeys;

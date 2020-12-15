@@ -1,4 +1,4 @@
-package com.payline.wechatpay.service.impl;
+package com.payline.payment.wechatpay.service.impl;
 
 import com.payline.payment.wechatpay.exception.PluginException;
 import com.payline.payment.wechatpay.service.QRCodeService;

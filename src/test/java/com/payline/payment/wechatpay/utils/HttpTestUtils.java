@@ -1,4 +1,4 @@
-package com.payline.wechatpay.utils;
+package com.payline.payment.wechatpay.utils;
 
 import com.payline.payment.wechatpay.util.http.StringResponse;
 import org.apache.http.Header;
