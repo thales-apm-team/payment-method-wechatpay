@@ -86,7 +86,7 @@ class ConfigurationServiceImplTest {
                 .resultCode(Code.FAIL)
                 .errorCode("20002")
                 .build();
-        doReturn(response).when(httpService).DownloadTransactionHistory(any(), any());
+        doReturn(response).when(httpService).downloadTransactionHistory(any(), any());
 
         ContractParametersCheckRequest request = MockUtils.aContractParametersCheckRequestBuilder().build();
         Map<String, String> errors = service.check(request);
@@ -106,7 +106,7 @@ class ConfigurationServiceImplTest {
                 .resultCode(Code.FAIL)
                 .errorCode("20003")
                 .build();
-        doReturn(response).when(httpService).DownloadTransactionHistory(any(), any());
+        doReturn(response).when(httpService).downloadTransactionHistory(any(), any());
 
         ContractParametersCheckRequest request = MockUtils.aContractParametersCheckRequestBuilder().build();
         Map<String, String> errors = service.check(request);
@@ -119,7 +119,7 @@ class ConfigurationServiceImplTest {
 
     @Test
     void checkPluginException(){
-        Mockito.doThrow(new InvalidDataException("foo")).when(httpService).DownloadTransactionHistory(any(), any());
+        Mockito.doThrow(new InvalidDataException("foo")).when(httpService).downloadTransactionHistory(any(), any());
 
         ContractParametersCheckRequest request = MockUtils.aContractParametersCheckRequestBuilder().build();
         Map<String, String> errors = service.check(request);
@@ -130,7 +130,7 @@ class ConfigurationServiceImplTest {
 
     @Test
     void checkRuntimeException(){
-        Mockito.doThrow(new NullPointerException("foo")).when(httpService).DownloadTransactionHistory(any(), any());
+        Mockito.doThrow(new NullPointerException("foo")).when(httpService).downloadTransactionHistory(any(), any());
 
         ContractParametersCheckRequest request = MockUtils.aContractParametersCheckRequestBuilder().build();
         Map<String, String> errors = service.check(request);

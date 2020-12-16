@@ -24,33 +24,29 @@ import java.util.Map;
 
 @Log4j2
 public class HttpService {
+    private static final String INVALID_URL_MESSAGE = "invalid URL";
+    private static final String INVALID_URL_LOG_MESSAGE = "invalid URL for property: {}";
     private HttpClient client = HttpClient.getInstance();
     private JsonService jsonService = JsonService.getInstance();
     private SignatureUtil signatureUtil = SignatureUtil.getInstance();
+    private ErrorConverter errorConverter = ErrorConverter.getInstance();
 
     private HttpService() {
-    }
-
-    private static class Holder {
-        private static final HttpService instance = new HttpService();
     }
 
     public static HttpService getInstance() {
         return Holder.instance;
     }
-    // --- Singleton Holder pattern + initialization END
-
 
     protected Header[] initHeaders() {
         return new Header[]{
                 new BasicHeader("Content-Type", "text/xml")
         };
     }
+    // --- Singleton Holder pattern + initialization END
 
     public UnifiedOrderResponse unifiedOrder(RequestConfiguration configuration, UnifiedOrderRequest request) {
         try {
-            verifyData(configuration);
-
             // get needed data
             String key = configuration.getPartnerConfiguration().getProperty(PartnerConfigurationKeys.KEY);
 
@@ -64,23 +60,20 @@ public class HttpService {
 
             // does the call
             StringResponse response = client.post(uri, headers, body);
-            UnifiedOrderResponse unifiedOrderResponse = jsonService.mapToObject(jsonService.xmlToMap(response.getContent()), UnifiedOrderResponse.class);
-
+            UnifiedOrderResponse unifiedOrderResponse = jsonService.xmlToObject(response.getContent(), UnifiedOrderResponse.class);
 
             // check response
             checkResponse(unifiedOrderResponse, key, request.getSignType());
 
             return unifiedOrderResponse;
         } catch (URISyntaxException e) {
-            e.printStackTrace();
+            log.error(INVALID_URL_LOG_MESSAGE, PartnerConfigurationKeys.UNIFIED_ORDER_URL);
+            throw new InvalidDataException(INVALID_URL_MESSAGE);
         }
-        return null;
     }
 
     public QueryOrderResponse queryOrder(RequestConfiguration configuration, QueryOrderRequest request) {
         try {
-            verifyData(configuration);
-
             // get needed data
             String key = configuration.getPartnerConfiguration().getProperty(PartnerConfigurationKeys.KEY);
 
@@ -94,22 +87,20 @@ public class HttpService {
 
             // does the call
             StringResponse response = client.post(uri, headers, body);
-            QueryOrderResponse queryOrderResponse = jsonService.mapToObject(jsonService.xmlToMap(response.getContent()), QueryOrderResponse.class);
+            QueryOrderResponse queryOrderResponse = jsonService.xmlToObject(response.getContent(), QueryOrderResponse.class);
 
             // check response
             checkResponse(queryOrderResponse, key, request.getSignType());
 
             return queryOrderResponse;
         } catch (URISyntaxException e) {
-            e.printStackTrace();
+            log.error(INVALID_URL_LOG_MESSAGE, PartnerConfigurationKeys.QUERY_ORDER_URL);
+            throw new InvalidDataException(INVALID_URL_MESSAGE);
         }
-        return null;
     }
 
     public SubmitRefundResponse submitRefund(RequestConfiguration configuration, SubmitRefundRequest request) {
         try {
-            verifyData(configuration);
-
             // get needed data
             String key = configuration.getPartnerConfiguration().getProperty(PartnerConfigurationKeys.KEY);
 
@@ -123,22 +114,20 @@ public class HttpService {
 
             // does the call
             StringResponse response = client.post(uri, headers, body);
-            SubmitRefundResponse submitRefundResponse = jsonService.mapToObject(jsonService.xmlToMap(response.getContent()), SubmitRefundResponse.class);
+            SubmitRefundResponse submitRefundResponse = jsonService.xmlToObject(response.getContent(), SubmitRefundResponse.class);
 
             // check response
             checkResponse(submitRefundResponse, key, request.getSignType());
 
             return submitRefundResponse;
         } catch (URISyntaxException e) {
-            e.printStackTrace();
+            log.error(INVALID_URL_LOG_MESSAGE, PartnerConfigurationKeys.SUBMIT_REFUND_URL);
+            throw new InvalidDataException(INVALID_URL_MESSAGE);
         }
-        return null;
     }
 
     public QueryRefundResponse queryRefund(RequestConfiguration configuration, QueryRefundRequest request) {
         try {
-            verifyData(configuration);
-
             // get needed data
             String key = configuration.getPartnerConfiguration().getProperty(PartnerConfigurationKeys.KEY);
 
@@ -152,22 +141,20 @@ public class HttpService {
 
             // does the call
             StringResponse response = client.post(uri, headers, body);
-            QueryRefundResponse queryRefundResponse = jsonService.mapToObject(jsonService.xmlToMap(response.getContent()), QueryRefundResponse.class);
+            QueryRefundResponse queryRefundResponse = jsonService.xmlToObject(response.getContent(), QueryRefundResponse.class);
 
             // check response
             checkResponse(queryRefundResponse, key, request.getSignType());
 
             return queryRefundResponse;
         } catch (URISyntaxException e) {
-            e.printStackTrace();
+            log.error(INVALID_URL_LOG_MESSAGE, PartnerConfigurationKeys.QUERY_REFUND_URL);
+            throw new InvalidDataException(INVALID_URL_MESSAGE);
         }
-        return null;
     }
 
-    public Response DownloadTransactionHistory(RequestConfiguration configuration, DownloadTransactionHistoryRequest request) {
+    public Response downloadTransactionHistory(RequestConfiguration configuration, DownloadTransactionHistoryRequest request) {
         try {
-            verifyData(configuration);
-
             // get needed data
             String key = configuration.getPartnerConfiguration().getProperty(PartnerConfigurationKeys.KEY);
 
@@ -181,27 +168,26 @@ public class HttpService {
 
             // does the call
             StringResponse sResponse = client.post(uri, headers, body);
-            Response response = jsonService.mapToObject(jsonService.xmlToMap(sResponse.getContent()), Response.class);
+            Response response = jsonService.xmlToObject(sResponse.getContent(), Response.class);
 
             // check response
             checkReturnCode(response);
             checkSignature(response, key, request.getSignType());
 
             return response;
-
         } catch (URISyntaxException e) {
-            e.printStackTrace();
+            log.error(INVALID_URL_LOG_MESSAGE, PartnerConfigurationKeys.DOWNLOAD_TRANSACTIONS_URL);
+            throw new InvalidDataException(INVALID_URL_MESSAGE);
         }
-        return null;
     }
 
-    private void checkResponse(Response response, String key, SignType signType) {
+    void checkResponse(Response response, String key, SignType signType) {
         checkReturnCode(response);
         checkSignature(response, key, signType);
         checkResultCode(response);
     }
 
-    private void checkReturnCode(Response response) {
+    void checkReturnCode(Response response) {
         Code returnCode = response.getReturnCode();
         if (returnCode.equals(Code.FAIL)) {
             log.error("return_code FAIL in response {}", response.toString());
@@ -209,7 +195,7 @@ public class HttpService {
         }
     }
 
-    private void checkSignature(Response response, String key, SignType signType){
+    void checkSignature(Response response, String key, SignType signType) {
         Map<String, String> respData = jsonService.objectToMap(response);
         if (!signatureUtil.isSignatureValid(respData, key, signType)) {
             log.error("Invalid sign value in XML: {}", response.toString());
@@ -217,30 +203,16 @@ public class HttpService {
         }
     }
 
-    private void checkResultCode(Response response){
+    void checkResultCode(Response response) {
         Code resultCode = response.getResultCode();
-        if (resultCode.equals(Code.FAIL)) {
+        if (Code.FAIL.equals(resultCode)) {
             log.error("result_code FAIL in response {}", response.toString());
             throw new PluginException(response.getErrorCodeDescription()
-                    , ErrorConverter.convert(response.getErrorCode()));
+                    , errorConverter.convert(response.getErrorCode()));
         }
     }
 
-    /**
-     * Check if the data required for all request are empty or not
-     *
-     * @param configuration the request configuration
-     */
-    void verifyData(RequestConfiguration configuration) {
-        if (configuration.getPartnerConfiguration() == null) {
-            throw new InvalidDataException("PartnerConfiguration is empty");
-        }
-
-        if (configuration.getContractConfiguration() == null) {
-            throw new InvalidDataException("ContractConfiguration is empty");
-        }
-
-        // todo ajouter les verif d'url, d'id etc...
+    private static class Holder {
+        private static final HttpService instance = new HttpService();
     }
-
 }

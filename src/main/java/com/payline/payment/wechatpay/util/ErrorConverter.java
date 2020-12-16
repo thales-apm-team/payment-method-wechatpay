@@ -1,13 +1,10 @@
 package com.payline.payment.wechatpay.util;
 
 import com.payline.pmapi.bean.common.FailureCause;
-import lombok.experimental.UtilityClass;
 
 import java.util.HashMap;
-import java.util.Locale;
 import java.util.Map;
 
-@UtilityClass
 public class ErrorConverter {
     static Map<String, FailureCause> mapper = new HashMap<>();
 
@@ -40,6 +37,20 @@ public class ErrorConverter {
         mapper.put("20007", FailureCause.REFUSED);
         mapper.put("200100", FailureCause.PAYMENT_PARTNER_ERROR);
     }
+
+    private ErrorConverter() {
+    }
+
+    private static class Holder {
+        private static final ErrorConverter instance = new ErrorConverter();
+    }
+
+    public static ErrorConverter getInstance() {
+        return ErrorConverter.Holder.instance;
+    }
+    // --- Singleton Holder pattern + initialization END
+
+
 
     public FailureCause convert(String message) {
         return mapper.getOrDefault(message.toUpperCase(), FailureCause.PARTNER_UNKNOWN_ERROR);

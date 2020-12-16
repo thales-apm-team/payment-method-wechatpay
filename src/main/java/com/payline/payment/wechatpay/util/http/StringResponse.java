@@ -1,5 +1,9 @@
 package com.payline.payment.wechatpay.util.http;
 
+import lombok.AllArgsConstructor;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.NonNull;
 import org.apache.http.Header;
 import org.apache.http.HttpResponse;
 import org.apache.http.util.EntityUtils;
@@ -13,24 +17,15 @@ import java.util.Map;
 /**
  * Simple POJO supporting the core elements of an HTTP response, in a more readable format (especially the content).
  */
+@AllArgsConstructor
+@NoArgsConstructor
+@Getter
 public class StringResponse {
 
-    private String content;
-    private Map<String, String> headers;
     private int statusCode;
+    private Map<String, String> headers;
+    private String content;
     private String statusMessage;
-
-    public String getContent() {
-        return content;
-    }
-
-    public int getStatusCode() {
-        return statusCode;
-    }
-
-    public String getStatusMessage() {
-        return statusMessage;
-    }
 
     public boolean isSuccess() {
         return statusCode >= 200 && statusCode < 300;
@@ -58,8 +53,8 @@ public class StringResponse {
 
             instance.headers = new HashMap<>();
             Header[] rawHeaders = httpResponse.getAllHeaders();
-            for (int i = 0; i < rawHeaders.length; i++) {
-                instance.headers.put(rawHeaders[i].getName().toLowerCase(), rawHeaders[i].getValue());
+            for (Header rawHeader : rawHeaders) {
+                instance.headers.put(rawHeader.getName().toLowerCase(), rawHeader.getValue());
             }
         }
 
@@ -82,3 +77,4 @@ public class StringResponse {
         return str;
     }
 }
+

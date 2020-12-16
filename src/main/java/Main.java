@@ -102,7 +102,7 @@ public class Main {
                     .billType("ALL")
                     .build();
 
-            Response response2 = httpService.DownloadTransactionHistory(requestConfiguration, downloadTransactionHistoryRequest);
+            Response response2 = httpService.downloadTransactionHistory(requestConfiguration, downloadTransactionHistoryRequest);
 
             System.out.println(response2.toString());
 

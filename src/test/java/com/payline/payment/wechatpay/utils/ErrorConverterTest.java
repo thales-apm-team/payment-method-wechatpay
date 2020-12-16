@@ -10,6 +10,7 @@ import org.junit.jupiter.params.provider.MethodSource;
 import java.util.stream.Stream;
 
 class ErrorConverterTest {
+    ErrorConverter converter = ErrorConverter.getInstance();
 
     private static Stream<Arguments> errorCodes() {
         return Stream.of(
@@ -48,6 +49,6 @@ class ErrorConverterTest {
     @ParameterizedTest
     @MethodSource("errorCodes")
     void getFailureCause(String errorCode, FailureCause cause) {
-        Assertions.assertEquals(cause, ErrorConverter.convert(errorCode));
+        Assertions.assertEquals(cause, converter.convert(errorCode));
     }
 }

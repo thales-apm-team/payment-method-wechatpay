@@ -16,7 +16,6 @@ import com.payline.payment.wechatpay.util.properties.ReleaseProperties;
 import com.payline.pmapi.bean.configuration.ReleaseInformation;
 import com.payline.pmapi.bean.configuration.parameter.AbstractParameter;
 import com.payline.pmapi.bean.configuration.parameter.impl.InputParameter;
-import com.payline.pmapi.bean.configuration.parameter.impl.ListBoxParameter;
 import com.payline.pmapi.bean.configuration.request.ContractParametersCheckRequest;
 import com.payline.pmapi.service.ConfigurationService;
 import lombok.extern.log4j.Log4j2;
@@ -80,7 +79,7 @@ public class ConfigurationServiceImpl implements ConfigurationService {
                         .billType("ALL")
                         .build();
 
-                Response response = httpService.DownloadTransactionHistory(configuration, downloadTransactionHistoryRequest);
+                Response response = httpService.downloadTransactionHistory(configuration, downloadTransactionHistoryRequest);
                 // verify Response
                 Code code = response.getResultCode();
                 String errorCode = response.getErrorCode();

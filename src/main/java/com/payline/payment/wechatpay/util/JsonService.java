@@ -57,6 +57,11 @@ public class JsonService {
         return fromJson(toJson(map), clazz);
     }
 
+    public <T> T xmlToObject(String xml, Class<T> clazz) {
+        return mapToObject(xmlToMap(xml), clazz);
+    }
+
+
     public String mapToXml(Map<String, String> data) {
         try {
             Document document = newDocument();
@@ -69,9 +74,16 @@ public class JsonService {
                 filed.appendChild(document.createTextNode(value));
                 root.appendChild(filed);
             }
-            Transformer transformer = TransformerFactory.newInstance().newTransformer();
+
+            TransformerFactory transformerFactory = TransformerFactory.newInstance();
+            transformerFactory.setAttribute(XMLConstants.ACCESS_EXTERNAL_DTD, ""); // Compliant
+            transformerFactory.setAttribute(XMLConstants.ACCESS_EXTERNAL_STYLESHEET, ""); // Compliant
+
+
+            Transformer transformer = transformerFactory.newTransformer();
             transformer.setOutputProperty(OutputKeys.ENCODING, StandardCharsets.UTF_8.name());
             transformer.setOutputProperty(OutputKeys.INDENT, "yes");
+
             DOMSource source = new DOMSource(document);
 
             StringWriter writer = new StringWriter();
@@ -108,7 +120,7 @@ public class JsonService {
         } catch (ParserConfigurationException e) {
             e.printStackTrace();
         } catch (IOException e) {
-            e.printStackTrace();
+            e.printStackTrace();    // todo catcher proprement
         } catch (SAXException e) {
             e.printStackTrace();
         }
@@ -126,6 +138,9 @@ public class JsonService {
         documentBuilderFactory.setFeature(XMLConstants.FEATURE_SECURE_PROCESSING, true);
         documentBuilderFactory.setXIncludeAware(false);
         documentBuilderFactory.setExpandEntityReferences(false);
+
+        documentBuilderFactory.setAttribute(XMLConstants.ACCESS_EXTERNAL_DTD, ""); // Compliant
+        documentBuilderFactory.setAttribute(XMLConstants.ACCESS_EXTERNAL_SCHEMA, ""); // compliant
 
         return documentBuilderFactory.newDocumentBuilder();
     }
