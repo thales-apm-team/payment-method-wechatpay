@@ -82,7 +82,7 @@ public class ConfigurationServiceImpl implements ConfigurationService {
 
                 Response response = httpService.DownloadTransactionHistory(configuration, downloadTransactionHistoryRequest);
                 // verify Response
-                Code code = response.getReturnCode();
+                Code code = response.getResultCode();
                 String errorCode = response.getErrorCode();
 
                 if (code.equals(Code.FAIL) && !errorCode.equals("20002")) {

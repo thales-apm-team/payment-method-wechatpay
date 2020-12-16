@@ -1,10 +1,10 @@
 package com.payline.payment.wechatpay.service;
 
-import com.payline.payment.wechatpay.bean.request.*;
-import com.payline.payment.wechatpay.bean.response.*;
 import com.payline.payment.wechatpay.bean.configuration.RequestConfiguration;
 import com.payline.payment.wechatpay.bean.nested.Code;
 import com.payline.payment.wechatpay.bean.nested.SignType;
+import com.payline.payment.wechatpay.bean.request.*;
+import com.payline.payment.wechatpay.bean.response.*;
 import com.payline.payment.wechatpay.exception.InvalidDataException;
 import com.payline.payment.wechatpay.exception.PluginException;
 import com.payline.payment.wechatpay.util.ErrorConverter;
@@ -33,7 +33,6 @@ public class HttpService {
     private static class Holder {
         private static final HttpService instance = new HttpService();
     }
-
 
     public static HttpService getInstance() {
         return Holder.instance;
@@ -68,7 +67,7 @@ public class HttpService {
 
 
             // check response
-            checkResponse(unifiedOrderResponse, key,request.getSignType());
+            checkResponse(unifiedOrderResponse, key, request.getSignType());
 
             return unifiedOrderResponse;
         } catch (URISyntaxException e) {
@@ -97,7 +96,7 @@ public class HttpService {
             QueryOrderResponse queryOrderResponse = jsonService.mapToObject(jsonService.xmlToMap(response.getContent()), QueryOrderResponse.class);
 
             // check response
-            checkResponse(queryOrderResponse, key,request.getSignType());
+            checkResponse(queryOrderResponse, key, request.getSignType());
 
             return queryOrderResponse;
         } catch (URISyntaxException e) {
@@ -126,7 +125,7 @@ public class HttpService {
             SubmitRefundResponse submitRefundResponse = jsonService.mapToObject(jsonService.xmlToMap(response.getContent()), SubmitRefundResponse.class);
 
             // check response
-            checkResponse(submitRefundResponse, key,request.getSignType());
+            checkResponse(submitRefundResponse, key, request.getSignType());
 
             return submitRefundResponse;
         } catch (URISyntaxException e) {
@@ -135,8 +134,7 @@ public class HttpService {
         return null;
     }
 
-
-    public QueryRefundResponse queryRefund(RequestConfiguration configuration, QueryRefundRequest request){
+    public QueryRefundResponse queryRefund(RequestConfiguration configuration, QueryRefundRequest request) {
         try {
             verifyData(configuration);
 
@@ -156,7 +154,7 @@ public class HttpService {
             QueryRefundResponse queryRefundResponse = jsonService.mapToObject(jsonService.xmlToMap(response.getContent()), QueryRefundResponse.class);
 
             // check response
-            checkResponse(queryRefundResponse, key,request.getSignType());
+            checkResponse(queryRefundResponse, key, request.getSignType());
 
             return queryRefundResponse;
         } catch (URISyntaxException e) {
@@ -165,8 +163,7 @@ public class HttpService {
         return null;
     }
 
-
-    public Response DownloadTransactionHistory(RequestConfiguration configuration, DownloadTransactionHistoryRequest request){
+    public Response DownloadTransactionHistory(RequestConfiguration configuration, DownloadTransactionHistoryRequest request) {
         try {
             verifyData(configuration);
 
@@ -182,13 +179,14 @@ public class HttpService {
             String body = SignatureUtil.generateSignedXml(map, key, request.getSignType());
 
             // does the call
-            StringResponse response = client.post(uri, headers, body);
-            return  jsonService.mapToObject(jsonService.xmlToMap(response.getContent()), Response.class);
+            StringResponse sResponse = client.post(uri, headers, body);
+            Response response = jsonService.mapToObject(jsonService.xmlToMap(sResponse.getContent()), Response.class);
 
             // check response
+            checkReturnCode(response);
+            checkSignature(response, key, request.getSignType());
 
-
-            // todo
+            return response;
 
         } catch (URISyntaxException e) {
             e.printStackTrace();
@@ -197,28 +195,35 @@ public class HttpService {
     }
 
     private void checkResponse(Response response, String key, SignType signType) {
+        checkReturnCode(response);
+        checkSignature(response, key, signType);
+        checkResultCode(response);
+    }
+
+    private void checkReturnCode(Response response) {
         Code returnCode = response.getReturnCode();
         if (returnCode.equals(Code.FAIL)) {
             log.error("return_code FAIL in response {}", response.toString());
             throw new PluginException(response.getReturnMessage(), FailureCause.PAYMENT_PARTNER_ERROR);
-        } else {
-            // verify Signature
-            Map<String,String> respData = jsonService.objectToMap(response);
-            if (SignatureUtil.isSignatureValid(respData, key, signType)) {
-                // check resultCode
-                Code resultCode = response.getResultCode();
-                if (resultCode.equals(Code.FAIL)) {
-                    log.error("result_code FAIL in response {}", response.toString());
-                    throw new PluginException(response.getErrorCodeDescription()
-                            , ErrorConverter.convert(response.getErrorCode()));
-                }
-            } else {
-                log.error("Invalid sign value in XML: {}", response.toString());
-                throw new PluginException("Invalid signature", FailureCause.INVALID_DATA);
-            }
         }
     }
 
+    private void checkSignature(Response response, String key, SignType signType){
+        Map<String, String> respData = jsonService.objectToMap(response);
+        if (!SignatureUtil.isSignatureValid(respData, key, signType)) {
+            log.error("Invalid sign value in XML: {}", response.toString());
+            throw new PluginException("Invalid signature", FailureCause.INVALID_DATA);
+        }
+    }
+
+    private void checkResultCode(Response response){
+        Code resultCode = response.getResultCode();
+        if (resultCode.equals(Code.FAIL)) {
+            log.error("result_code FAIL in response {}", response.toString());
+            throw new PluginException(response.getErrorCodeDescription()
+                    , ErrorConverter.convert(response.getErrorCode()));
+        }
+    }
 
     /**
      * Check if the data required for all request are empty or not
@@ -236,6 +241,5 @@ public class HttpService {
 
         // todo ajouter les verif d'url, d'id etc...
     }
-
 
 }
