@@ -14,12 +14,20 @@ import java.security.NoSuchAlgorithmException;
 import java.util.Map;
 import java.util.stream.Collectors;
 
-@UtilityClass
 public class SignatureUtil {
     private static final String FIELD_SIGN = "sign";
 
+    private SignatureUtil(){}
 
-    public static boolean isSignatureValid(Map<String, String> data, String key, SignType signType) {
+    private static class Holder {
+        private static final SignatureUtil instance = new SignatureUtil();
+    }
+
+    public static SignatureUtil getInstance() {
+        return SignatureUtil.Holder.instance;
+    }
+
+    public boolean isSignatureValid(Map<String, String> data, String key, SignType signType) {
         if (!data.containsKey(FIELD_SIGN)) {
             return false;
         }
@@ -34,7 +42,7 @@ public class SignatureUtil {
      * @param key  API密钥
      * @return 含有sign字段的XML
      */
-    public static String generateSignedXml(final Map<String, String> data, String key, SignType signType) {
+    public String generateSignedXml(final Map<String, String> data, String key, SignType signType) {
         String sign = generateSignature(data, key, signType);
         data.put(FIELD_SIGN, sign);
         return JsonService.getInstance().mapToXml(data);
@@ -48,7 +56,7 @@ public class SignatureUtil {
      * @param key  API密钥
      * @return 签名
      */
-    public static String generateSignature(final Map<String, String> data, String key, SignType signType) {
+    public String generateSignature(final Map<String, String> data, String key, SignType signType) {
         StringBuilder sb = new StringBuilder(
                 data.entrySet().stream()
                         .filter(e -> !e.getKey().equals(FIELD_SIGN))    // remove signature entry
@@ -66,7 +74,6 @@ public class SignatureUtil {
         }
     }
 
-    // todo a virer plus tard
     public String hashWithSha256(String data, String key) {
         try {
             // init cipher

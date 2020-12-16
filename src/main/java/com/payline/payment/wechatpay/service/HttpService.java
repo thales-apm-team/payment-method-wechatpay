@@ -26,6 +26,7 @@ import java.util.Map;
 public class HttpService {
     private HttpClient client = HttpClient.getInstance();
     private JsonService jsonService = JsonService.getInstance();
+    private SignatureUtil signatureUtil = SignatureUtil.getInstance();
 
     private HttpService() {
     }
@@ -59,7 +60,7 @@ public class HttpService {
             );
             Header[] headers = initHeaders();
             Map<String, String> map = jsonService.objectToMap(request);
-            String body = SignatureUtil.generateSignedXml(map, key, request.getSignType());
+            String body = signatureUtil.generateSignedXml(map, key, request.getSignType());
 
             // does the call
             StringResponse response = client.post(uri, headers, body);
@@ -89,7 +90,7 @@ public class HttpService {
             );
             Header[] headers = initHeaders();
             Map<String, String> map = jsonService.objectToMap(request);
-            String body = SignatureUtil.generateSignedXml(map, key, request.getSignType());
+            String body = signatureUtil.generateSignedXml(map, key, request.getSignType());
 
             // does the call
             StringResponse response = client.post(uri, headers, body);
@@ -118,7 +119,7 @@ public class HttpService {
             );
             Header[] headers = initHeaders();
             Map<String, String> map = jsonService.objectToMap(request);
-            String body = SignatureUtil.generateSignedXml(map, key, request.getSignType());
+            String body = signatureUtil.generateSignedXml(map, key, request.getSignType());
 
             // does the call
             StringResponse response = client.post(uri, headers, body);
@@ -147,7 +148,7 @@ public class HttpService {
             );
             Header[] headers = initHeaders();
             Map<String, String> map = jsonService.objectToMap(request);
-            String body = SignatureUtil.generateSignedXml(map, key, request.getSignType());
+            String body = signatureUtil.generateSignedXml(map, key, request.getSignType());
 
             // does the call
             StringResponse response = client.post(uri, headers, body);
@@ -176,7 +177,7 @@ public class HttpService {
             );
             Header[] headers = initHeaders();
             Map<String, String> map = jsonService.objectToMap(request);
-            String body = SignatureUtil.generateSignedXml(map, key, request.getSignType());
+            String body = signatureUtil.generateSignedXml(map, key, request.getSignType());
 
             // does the call
             StringResponse sResponse = client.post(uri, headers, body);
@@ -210,7 +211,7 @@ public class HttpService {
 
     private void checkSignature(Response response, String key, SignType signType){
         Map<String, String> respData = jsonService.objectToMap(response);
-        if (!SignatureUtil.isSignatureValid(respData, key, signType)) {
+        if (!signatureUtil.isSignatureValid(respData, key, signType)) {
             log.error("Invalid sign value in XML: {}", response.toString());
             throw new PluginException("Invalid signature", FailureCause.INVALID_DATA);
         }
@@ -230,7 +231,7 @@ public class HttpService {
      *
      * @param configuration the request configuration
      */
-    private void verifyData(RequestConfiguration configuration) {
+    void verifyData(RequestConfiguration configuration) {
         if (configuration.getPartnerConfiguration() == null) {
             throw new InvalidDataException("PartnerConfiguration is empty");
         }
