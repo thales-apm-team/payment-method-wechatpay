@@ -1,5 +1,8 @@
 package com.payline.payment.wechatpay;
 
+import com.payline.payment.wechatpay.bean.nested.Code;
+import com.payline.payment.wechatpay.bean.nested.SignType;
+import com.payline.payment.wechatpay.bean.response.Response;
 import com.payline.payment.wechatpay.util.constant.ContractConfigurationKeys;
 import com.payline.payment.wechatpay.util.constant.PartnerConfigurationKeys;
 import com.payline.pmapi.bean.configuration.PartnerConfiguration;
@@ -118,5 +121,86 @@ public class MockUtils {
                 .withEnvironment(anEnvironment())
                 .withLocale(Locale.getDefault())
                 .withPartnerConfiguration(aPartnerConfiguration());
+    }
+    public Response aResponseWithoutSign(){
+        return Response.builder()
+                .returnCode(Code.SUCCESS)
+                .errorCode("errorCode")
+                .resultCode(Code.SUCCESS)
+                .errorCodeDescription("errorCodeDescription")
+                .returnMessage("returnMessage")
+                .appId("appId")
+                .merchantId("merchantId")
+                .nonceStr("nonceStr")
+                .signType(SignType.HMACSHA256)
+                .subAppId("subAppId")
+                .subMerchantId("subMerchantId")
+                .build();
+    }
+    public Response aHMACSHA256Response(){
+        return Response.builder()
+                .returnCode(Code.SUCCESS)
+                .errorCode("errorCode")
+                .resultCode(Code.SUCCESS)
+                .errorCodeDescription("errorCodeDescription")
+                .returnMessage("returnMessage")
+                .appId("appId")
+                .merchantId("merchantId")
+                .nonceStr("nonceStr")
+                .sign("4B8EA9A692F8D34306CD8E767302B8C1BCD3B8953094A93E0118305A32857945")
+                .signType(SignType.HMACSHA256)
+                .subAppId("subAppId")
+                .subMerchantId("subMerchantId")
+                .build();
+    }
+    public Response aMD5Response(){
+        return Response.builder()
+                .returnCode(Code.SUCCESS)
+                .errorCode("errorCode")
+                .resultCode(Code.SUCCESS)
+                .errorCodeDescription("errorCodeDescription")
+                .returnMessage("returnMessage")
+                .appId("appId")
+                .merchantId("merchantId")
+                .nonceStr("nonceStr")
+                .sign("289ABA3E667AF1A1DE8120E6E6D9A4F7")
+                .signType(SignType.MD5)
+                .subAppId("subAppId")
+                .subMerchantId("subMerchantId")
+                .build();
+    }
+    public String aHMACSHA256SignedXml(){
+        return "<?xml version=\"1.0\" encoding=\"UTF-8\" standalone=\"no\"?>\n" +
+                "<xml>\n" +
+                "    <return_code>SUCCESS</return_code>\n" +
+                "    <return_msg>returnMessage</return_msg>\n" +
+                "    <result_code>SUCCESS</result_code>\n" +
+                "    <error_code>errorCode</error_code>\n" +
+                "    <error_code_des>errorCodeDescription</error_code_des>\n" +
+                "    <appid>appId</appid>\n" +
+                "    <mch_id>merchantId</mch_id>\n" +
+                "    <sub_appid>subAppId</sub_appid>\n" +
+                "    <sub_mch_id>subMerchantId</sub_mch_id>\n" +
+                "    <nonce_str>nonceStr</nonce_str>\n" +
+                "    <sign_type>HMACSHA256</sign_type>\n" +
+                "    <sign>4B8EA9A692F8D34306CD8E767302B8C1BCD3B8953094A93E0118305A32857945</sign>\n" +
+                "</xml>\n";
+    }
+    public String aMD5SignedXml(){
+        return "<?xml version=\"1.0\" encoding=\"UTF-8\" standalone=\"no\"?>\n" +
+                "<xml>\n" +
+                "    <return_code>SUCCESS</return_code>\n" +
+                "    <return_msg>returnMessage</return_msg>\n" +
+                "    <result_code>SUCCESS</result_code>\n" +
+                "    <error_code>errorCode</error_code>\n" +
+                "    <error_code_des>errorCodeDescription</error_code_des>\n" +
+                "    <appid>appId</appid>\n" +
+                "    <mch_id>merchantId</mch_id>\n" +
+                "    <sub_appid>subAppId</sub_appid>\n" +
+                "    <sub_mch_id>subMerchantId</sub_mch_id>\n" +
+                "    <nonce_str>nonceStr</nonce_str>\n" +
+                "    <sign_type>MD5</sign_type>\n" +
+                "    <sign>289ABA3E667AF1A1DE8120E6E6D9A4F7</sign>\n" +
+                "</xml>\n";
     }
 }
