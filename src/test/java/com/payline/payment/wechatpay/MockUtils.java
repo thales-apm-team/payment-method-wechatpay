@@ -8,6 +8,7 @@ import com.payline.payment.wechatpay.util.constant.PartnerConfigurationKeys;
 import com.payline.pmapi.bean.common.Buyer;
 import com.payline.pmapi.bean.configuration.PartnerConfiguration;
 import com.payline.pmapi.bean.configuration.request.ContractParametersCheckRequest;
+import com.payline.pmapi.bean.notification.request.NotificationRequest;
 import com.payline.pmapi.bean.payment.ContractConfiguration;
 import com.payline.pmapi.bean.payment.ContractProperty;
 import com.payline.pmapi.bean.payment.Environment;
@@ -16,7 +17,9 @@ import com.payline.pmapi.bean.paymentform.request.PaymentFormLogoRequest;
 import com.payline.pmapi.bean.refund.request.RefundRequest;
 import lombok.experimental.UtilityClass;
 
+import java.io.ByteArrayInputStream;
 import java.math.BigInteger;
+import java.nio.charset.StandardCharsets;
 import java.util.*;
 
 @UtilityClass
@@ -254,5 +257,18 @@ public class MockUtils {
                 .withTransactionId(TRANSACTION_ID)
                 .withPartnerTransactionId(PARTNER_TRANSACTION_ID)
                 .withPartnerConfiguration(aPartnerConfiguration());
+    }
+
+
+    public NotificationRequest.NotificationRequestBuilder aNotificationRequestBuilder(){
+        return NotificationRequest.NotificationRequestBuilder
+                .aNotificationRequest()
+                .withContractConfiguration(aContractConfiguration())
+                .withEnvironment(anEnvironment())
+                .withPartnerConfiguration(aPartnerConfiguration())
+                .withHttpMethod("POST")
+                .withHeaderInfos(new HashMap<>())
+                .withPathInfo("aPathInfo")
+                ;
     }
 }

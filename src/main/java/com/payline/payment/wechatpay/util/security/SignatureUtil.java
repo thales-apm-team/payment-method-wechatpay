@@ -119,11 +119,11 @@ public class SignatureUtil {
 
         try {
             // init cipher
-            Mac sha256_HMAC = Mac.getInstance(HMACSHA256);
-            SecretKeySpec secret_key = new SecretKeySpec(key.getBytes(StandardCharsets.UTF_8), HMACSHA256);
-            sha256_HMAC.init(secret_key);
+            Mac sha256HMAC = Mac.getInstance(HMACSHA256);
+            SecretKeySpec secretKeySpec = new SecretKeySpec(key.getBytes(StandardCharsets.UTF_8), HMACSHA256);
+            sha256HMAC.init(secretKeySpec);
 
-            return Hex.encodeHexString(sha256_HMAC.doFinal(data.getBytes(StandardCharsets.UTF_8))).toUpperCase();
+            return Hex.encodeHexString(sha256HMAC.doFinal(data.getBytes(StandardCharsets.UTF_8))).toUpperCase();
 
         } catch (NoSuchAlgorithmException e) {
             log.error(INVALID_ALGORITHM, e);

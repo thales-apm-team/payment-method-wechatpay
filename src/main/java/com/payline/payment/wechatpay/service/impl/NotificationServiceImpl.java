@@ -13,10 +13,12 @@ import com.payline.payment.wechatpay.util.JsonService;
 import com.payline.payment.wechatpay.util.PluginUtils;
 import com.payline.payment.wechatpay.util.constant.ContractConfigurationKeys;
 import com.payline.payment.wechatpay.util.constant.PartnerConfigurationKeys;
+import com.payline.payment.wechatpay.util.security.SignatureUtil;
 import com.payline.pmapi.bean.common.FailureCause;
 import com.payline.pmapi.bean.common.TransactionCorrelationId;
 import com.payline.pmapi.bean.notification.request.NotificationRequest;
 import com.payline.pmapi.bean.notification.response.NotificationResponse;
+import com.payline.pmapi.bean.notification.response.impl.IgnoreNotificationResponse;
 import com.payline.pmapi.bean.notification.response.impl.PaymentResponseByNotificationResponse;
 import com.payline.pmapi.bean.payment.request.NotifyTransactionStatusRequest;
 import com.payline.pmapi.bean.payment.response.PaymentResponse;
@@ -24,14 +26,16 @@ import com.payline.pmapi.bean.payment.response.buyerpaymentidentifier.BuyerPayme
 import com.payline.pmapi.bean.payment.response.buyerpaymentidentifier.impl.EmptyTransactionDetails;
 import com.payline.pmapi.bean.payment.response.impl.PaymentResponseFailure;
 import com.payline.pmapi.bean.payment.response.impl.PaymentResponseSuccess;
-import com.payline.pmapi.bean.refund.response.impl.RefundResponseFailure;
 import com.payline.pmapi.service.NotificationService;
 import lombok.extern.log4j.Log4j2;
+
+import java.util.Map;
 
 @Log4j2
 public class NotificationServiceImpl implements NotificationService {
     JsonService jsonService = JsonService.getInstance();
     HttpService httpService = HttpService.getInstance();
+    SignatureUtil signatureUtil = SignatureUtil.getInstance();
 
     @Override
     public NotificationResponse parse(NotificationRequest notificationRequest) {
@@ -47,7 +51,18 @@ public class NotificationServiceImpl implements NotificationService {
 
             // get notification data
             String notificationMessage = PluginUtils.inputStreamToString(notificationRequest.getContent());
-            NotificationMessage message = jsonService.mapToObject(jsonService.xmlToMap(notificationMessage), NotificationMessage.class);
+
+            Map<String, String> mNotificationMessage = jsonService.xmlToMap(notificationMessage);
+
+            // verify Signature
+            String key = configuration.getPartnerConfiguration().getProperty(PartnerConfigurationKeys.KEY);
+            SignType signType = SignType.valueOf(configuration.getPartnerConfiguration().getProperty(PartnerConfigurationKeys.SIGN_TYPE));
+            if (!signatureUtil.isSignatureValid(mNotificationMessage, key, signType)) {
+                log.error("Invalid sign value in XML: {}", notificationMessage);
+                throw new PluginException("Invalid signature", FailureCause.INVALID_DATA);
+            }
+
+            NotificationMessage message = jsonService.mapToObject(mNotificationMessage, NotificationMessage.class);
             String transactionId = message.getTransactionId();
 
             // call WeChatPay API to get the transaction status
@@ -69,31 +84,39 @@ public class NotificationServiceImpl implements NotificationService {
             partnerTransactionId = queryOrderResponse.getTransactionId();
             BuyerPaymentId buyerPaymentId = new EmptyTransactionDetails();
 
-            if (tradeState.equals(TradeState.SUCCESS)) {
-                paymentResponse = PaymentResponseSuccess.PaymentResponseSuccessBuilder
-                        .aPaymentResponseSuccess()
-                        .withPartnerTransactionId(partnerTransactionId)
-                        .withStatusCode(tradeState.name())
-                        .withTransactionDetails(buyerPaymentId)
-                        .build();
-            } else {
-                paymentResponse = PaymentResponseFailure.PaymentResponseFailureBuilder
-                        .aPaymentResponseFailure()
-                        .withPartnerTransactionId(partnerTransactionId)
-                        .withErrorCode(queryOrderResponse.getErrorCode())
-                        .withFailureCause(FailureCause.PARTNER_UNKNOWN_ERROR) // todo c'est quoi qui va la?
-                        .withTransactionDetails(buyerPaymentId)
-                        .build();
+            switch (tradeState) {
+                case SUCCESS:
+                    paymentResponse = PaymentResponseSuccess.PaymentResponseSuccessBuilder
+                            .aPaymentResponseSuccess()
+                            .withPartnerTransactionId(partnerTransactionId)
+                            .withStatusCode(tradeState.name())
+                            .withTransactionDetails(buyerPaymentId)
+                            .build();
+                    break;
+                case NOTPAY:
+                    paymentResponse = PaymentResponseFailure.PaymentResponseFailureBuilder
+                            .aPaymentResponseFailure()
+                            .withPartnerTransactionId(partnerTransactionId)
+                            .withErrorCode(queryOrderResponse.getErrorCode())
+                            .withFailureCause(FailureCause.PARTNER_UNKNOWN_ERROR) // todo c'est quoi qui va la?
+                            .withTransactionDetails(buyerPaymentId)
+                            .build();
+                    break;
+                default:
+                    return new IgnoreNotificationResponse();    // todo
             }
 
-        }catch (PluginException e) {
+        } catch (PluginException e) {
             log.info("a PluginException occurred", e);
-            paymentResponse = e.toPaymentResponseFailureBuilder().build();
+            paymentResponse = e.toPaymentResponseFailureBuilder()
+                    .withPartnerTransactionId(partnerTransactionId)
+                    .build();
 
         } catch (RuntimeException e) {
             log.error("Unexpected plugin error", e);
             paymentResponse = PaymentResponseFailure.PaymentResponseFailureBuilder
                     .aPaymentResponseFailure()
+                    .withPartnerTransactionId(partnerTransactionId)
                     .withErrorCode(PluginUtils.runtimeErrorCode(e))
                     .withFailureCause(FailureCause.INTERNAL_ERROR)
                     .build();
@@ -114,11 +137,11 @@ public class NotificationServiceImpl implements NotificationService {
                 .withTransactionCorrelationId(correlationId)
                 .build();
 
-            return notificationResponse;
-        }
-
-        @Override
-        public void notifyTransactionStatus (NotifyTransactionStatusRequest notifyTransactionStatusRequest){
-            // does nothing
-        }
+        return notificationResponse;
     }
+
+    @Override
+    public void notifyTransactionStatus(NotifyTransactionStatusRequest notifyTransactionStatusRequest) {
+        // does nothing
+    }
+}
