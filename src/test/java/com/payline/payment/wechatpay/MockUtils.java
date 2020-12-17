@@ -5,22 +5,24 @@ import com.payline.payment.wechatpay.bean.nested.SignType;
 import com.payline.payment.wechatpay.bean.response.Response;
 import com.payline.payment.wechatpay.util.constant.ContractConfigurationKeys;
 import com.payline.payment.wechatpay.util.constant.PartnerConfigurationKeys;
+import com.payline.pmapi.bean.common.Buyer;
 import com.payline.pmapi.bean.configuration.PartnerConfiguration;
 import com.payline.pmapi.bean.configuration.request.ContractParametersCheckRequest;
 import com.payline.pmapi.bean.payment.ContractConfiguration;
 import com.payline.pmapi.bean.payment.ContractProperty;
 import com.payline.pmapi.bean.payment.Environment;
+import com.payline.pmapi.bean.payment.Order;
 import com.payline.pmapi.bean.paymentform.request.PaymentFormLogoRequest;
+import com.payline.pmapi.bean.refund.request.RefundRequest;
 import lombok.experimental.UtilityClass;
 
 import java.math.BigInteger;
-import java.util.Currency;
-import java.util.HashMap;
-import java.util.Locale;
-import java.util.Map;
+import java.util.*;
 
 @UtilityClass
 public class MockUtils {
+    public final String TRANSACTION_ID = "123456789012345678901";
+    public final String PARTNER_TRANSACTION_ID = "098765432109876543210";
 
     /**
      * Generate a valid Payline Amount.
@@ -30,16 +32,36 @@ public class MockUtils {
     }
 
     /**
-     * Generate a valid {@link PaymentFormLogoRequest}.
+     * Generate a valid, but not complete, {@link Order}
      */
-    public PaymentFormLogoRequest aPaymentFormLogoRequest() {
-        return PaymentFormLogoRequest.PaymentFormLogoRequestBuilder.aPaymentFormLogoRequest()
-                .withContractConfiguration(aContractConfiguration())
-                .withEnvironment(anEnvironment())
-                .withPartnerConfiguration(aPartnerConfiguration())
-                .withLocale(Locale.getDefault())
+    public Order aPaylineOrder() {
+        List<Order.OrderItem> items = new ArrayList<>();
+
+        items.add(Order.OrderItem.OrderItemBuilder
+                .anOrderItem()
+                .withReference("foo")
+                .withAmount(aPaylineAmount())
+                .withQuantity((long) 1)
+                .build());
+
+        return Order.OrderBuilder.anOrder()
+                .withDate(new Date())
+                .withAmount(aPaylineAmount())
+                .withItems(items)
+                .withReference("ORDER-REF-123456")
                 .build();
     }
+
+    /**
+     * Generate a valid {@link Buyer}.
+     */
+    public Buyer aBuyer() {
+        return Buyer.BuyerBuilder.aBuyer()
+                .withFullName(new Buyer.FullName("Marie", "Durand", "1"))
+                .withEmail("foo@bar.baz")
+                .build();
+    }
+
 
     /**
      * Generate a valid {@link ContractConfiguration} to verify the connection to the API.
@@ -109,6 +131,19 @@ public class MockUtils {
 
 
     // Request creation methods
+
+    /**
+     * Generate a valid {@link PaymentFormLogoRequest}.
+     */
+    public PaymentFormLogoRequest aPaymentFormLogoRequest() {
+        return PaymentFormLogoRequest.PaymentFormLogoRequestBuilder.aPaymentFormLogoRequest()
+                .withContractConfiguration(aContractConfiguration())
+                .withEnvironment(anEnvironment())
+                .withPartnerConfiguration(aPartnerConfiguration())
+                .withLocale(Locale.getDefault())
+                .build();
+    }
+
 
     /**
      * Generate a builder for a valid {@link ContractParametersCheckRequest}.
@@ -202,5 +237,22 @@ public class MockUtils {
                 "    <sign_type>MD5</sign_type>\n" +
                 "    <sign>289ABA3E667AF1A1DE8120E6E6D9A4F7</sign>\n" +
                 "</xml>\n";
+    }
+
+
+    /**
+     * Generate a builder for a valid {@link RefundRequest}.
+     * This way, some attributes may be overridden to match specific test needs.
+     */
+    public RefundRequest.RefundRequestBuilder aRefundRequestBuilder() {
+        return RefundRequest.RefundRequestBuilder.aRefundRequest()
+                .withAmount(aPaylineAmount())
+                .withOrder(aPaylineOrder())
+                .withBuyer(aBuyer())
+                .withContractConfiguration(aContractConfiguration())
+                .withEnvironment(anEnvironment())
+                .withTransactionId(TRANSACTION_ID)
+                .withPartnerTransactionId(PARTNER_TRANSACTION_ID)
+                .withPartnerConfiguration(aPartnerConfiguration());
     }
 }
