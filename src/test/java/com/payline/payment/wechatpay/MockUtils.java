@@ -11,6 +11,7 @@ import com.payline.pmapi.bean.configuration.request.ContractParametersCheckReque
 import com.payline.pmapi.bean.notification.request.NotificationRequest;
 import com.payline.pmapi.bean.payment.*;
 import com.payline.pmapi.bean.payment.request.PaymentRequest;
+import com.payline.pmapi.bean.payment.request.TransactionStatusRequest;
 import com.payline.pmapi.bean.paymentform.request.PaymentFormLogoRequest;
 import com.payline.pmapi.bean.refund.request.RefundRequest;
 import lombok.experimental.UtilityClass;
@@ -322,5 +323,21 @@ public class MockUtils {
      */
     public static String aUserAgent() {
         return "Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:67.0) Gecko/20100101 Firefox/67.0";
+    }
+    public TransactionStatusRequest.TransactionStatusRequestBuilder aPaylineTransactionStatusRequestBuilder(){
+        return TransactionStatusRequest.TransactionStatusRequestBuilder
+                .aNotificationRequest()
+                .withTransactionId(TRANSACTION_ID)
+                .withContractConfiguration(aContractConfiguration())
+                .withEnvironment(anEnvironment())
+                .withPartnerConfiguration(aPartnerConfiguration())
+                .withAmount(aPaylineAmount())
+                .withBuyer(aBuyer())
+                .withOrder(aPaylineOrder());
+
+    }
+
+    public TransactionStatusRequest aPaylineTransactionStatusRequest(){
+        return aPaylineTransactionStatusRequestBuilder().build();
     }
 }
