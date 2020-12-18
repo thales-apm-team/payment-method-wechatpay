@@ -1,10 +1,13 @@
 package com.payline.payment.wechatpay.service.impl;
 
 import com.payline.payment.wechatpay.bean.configuration.RequestConfiguration;
+import com.payline.payment.wechatpay.bean.nested.RefundStatus;
 import com.payline.payment.wechatpay.bean.nested.SignType;
 import com.payline.payment.wechatpay.bean.nested.TradeState;
 import com.payline.payment.wechatpay.bean.request.QueryOrderRequest;
+import com.payline.payment.wechatpay.bean.request.QueryRefundRequest;
 import com.payline.payment.wechatpay.bean.response.QueryOrderResponse;
+import com.payline.payment.wechatpay.bean.response.QueryRefundResponse;
 import com.payline.payment.wechatpay.exception.PluginException;
 import com.payline.payment.wechatpay.service.HttpService;
 import com.payline.payment.wechatpay.service.RequestConfigurationService;
@@ -36,51 +39,18 @@ public class PaymentWithRedirectionServiceImpl implements PaymentWithRedirection
     public PaymentResponse handleSessionExpired(TransactionStatusRequest transactionStatusRequest) {
         PaymentResponse paymentResponse;
         try {
-
             RequestConfiguration configuration = RequestConfigurationService.getInstance().build(transactionStatusRequest);
 
-            QueryOrderRequest queryOrderRequest = QueryOrderRequest.builder()
-                    .appId(configuration.getPartnerConfiguration().getProperty(PartnerConfigurationKeys.APPID))
-                    .merchantId(configuration.getContractConfiguration().getProperty(ContractConfigurationKeys.MERCHANT_ID).getValue())
-                    .subAppId(configuration.getPartnerConfiguration().getProperty(PartnerConfigurationKeys.SUB_APPID))
-                    .subMerchantId(configuration.getContractConfiguration().getProperty(ContractConfigurationKeys.SUB_MERCHANT_ID).getValue())
-                    .deviceInfo(configuration.getPartnerConfiguration().getProperty(PartnerConfigurationKeys.DEVICE_INFO))
-                    .transactionId(transactionStatusRequest.getTransactionId()) // todo verifier ca
-                    .nonceStr(PluginUtils.generateRandomString(32))
-                    .signType(SignType.valueOf(configuration.getPartnerConfiguration().getProperty(PartnerConfigurationKeys.SIGN_TYPE)))
-                    .build();
-
-            QueryOrderResponse response = httpService.queryOrder(configuration, queryOrderRequest);
-
-            String partnerTransactionId = response.getTransactionId();
-            BuyerPaymentId buyerPaymentId = new EmptyTransactionDetails(); // TODO: À vérifier
-            TradeState tradeState = response.getTradeState();
-            switch (tradeState) {
-                case SUCCESS:
-                    paymentResponse = PaymentResponseSuccess.PaymentResponseSuccessBuilder
-                            .aPaymentResponseSuccess()
-                            .withPartnerTransactionId(partnerTransactionId)
-                            .withStatusCode(tradeState.name())
-                            .withTransactionDetails(buyerPaymentId)
-                            .build();
-                    break;
-                case NOTPAY:
-                    paymentResponse = PaymentResponseFailure.PaymentResponseFailureBuilder
-                            .aPaymentResponseFailure()
-                            .withPartnerTransactionId(partnerTransactionId)
-                            .withErrorCode(response.getErrorCode())
-                            .withFailureCause(FailureCause.PAYMENT_PARTNER_ERROR)
-                            .withTransactionDetails(buyerPaymentId)
-                            .build();
-                    break;
-                default:
-                    paymentResponse = PaymentResponseFailure.PaymentResponseFailureBuilder
-                            .aPaymentResponseFailure()
-                            .withPartnerTransactionId(partnerTransactionId)
-                            .withErrorCode(response.getErrorCode())
-                            .withFailureCause(FailureCause.INVALID_DATA) // todo ca ou un autre mais a definir
-                            .withTransactionDetails(buyerPaymentId)
-                            .build();
+            // get the scenario
+            String partnerTransactionId = transactionStatusRequest.getTransactionId();
+            if (partnerTransactionId.startsWith("REFUND")){
+                // refund scenario
+                log.info("getting refund status");
+                return getRefundStatus(transactionStatusRequest, configuration);
+            }else{
+                // payment scenario
+                log.info("getting payment status");
+                return getPaymentStatus(transactionStatusRequest, configuration);
             }
         } catch (PluginException e) {
             log.info("a PluginException occurred", e);
@@ -93,6 +63,112 @@ public class PaymentWithRedirectionServiceImpl implements PaymentWithRedirection
                     .withErrorCode(PluginUtils.runtimeErrorCode(e))
                     .withFailureCause(FailureCause.INTERNAL_ERROR)
                     .build();
+        }
+
+        return paymentResponse;
+    }
+
+
+    public PaymentResponse getRefundStatus(TransactionStatusRequest request, RequestConfiguration configuration){
+        PaymentResponse paymentResponse;
+        String refundId = request.getTransactionId().replace("REFUND", "");
+
+        QueryRefundRequest queryRefundRequest = QueryRefundRequest.builder()
+                .appId(configuration.getPartnerConfiguration().getProperty(PartnerConfigurationKeys.APPID))
+                .merchantId(configuration.getContractConfiguration().getProperty(ContractConfigurationKeys.MERCHANT_ID).getValue())
+                .subAppId(configuration.getPartnerConfiguration().getProperty(PartnerConfigurationKeys.SUB_APPID))
+                .subMerchantId(configuration.getContractConfiguration().getProperty(ContractConfigurationKeys.SUB_MERCHANT_ID).getValue())
+                .nonceStr(PluginUtils.generateRandomString(32))
+                .signType(SignType.valueOf(configuration.getPartnerConfiguration().getProperty(PartnerConfigurationKeys.SIGN_TYPE)))
+                .refundId(refundId)
+                .build();
+
+        QueryRefundResponse queryRefundResponse = httpService.queryRefund(configuration, queryRefundRequest);
+        // create RefundResponse from refund status
+        BuyerPaymentId buyerPaymentId = new EmptyTransactionDetails();
+        RefundStatus refundStatus = queryRefundResponse.getRefundStatus();
+        switch (refundStatus) {
+            case SUCCESS:
+                paymentResponse = PaymentResponseSuccess.PaymentResponseSuccessBuilder
+                        .aPaymentResponseSuccess()
+                        .withPartnerTransactionId(refundId)
+                        .withStatusCode(refundStatus.name())
+                        .withTransactionDetails(buyerPaymentId)
+                        .build();
+                break;
+            case PROCESSING:
+                paymentResponse = PaymentResponseSuccess.PaymentResponseSuccessBuilder
+                        .aPaymentResponseSuccess()
+                        .withPartnerTransactionId(refundId)
+                        .withStatusCode("PENDING")
+                        .withTransactionDetails(buyerPaymentId)
+                        .build();
+                break;
+            case REFUNDCLOSE:
+                paymentResponse = PaymentResponseFailure.PaymentResponseFailureBuilder
+                        .aPaymentResponseFailure()
+                        .withPartnerTransactionId(refundId)
+                        .withErrorCode(refundStatus.name())
+                        .withFailureCause(FailureCause.REFUSED)
+                        .build();
+                break;
+            default:
+                paymentResponse = PaymentResponseFailure.PaymentResponseFailureBuilder
+                        .aPaymentResponseFailure()
+                        .withPartnerTransactionId(refundId)
+                        .withErrorCode(refundStatus.name())
+                        .withFailureCause(FailureCause.INVALID_DATA)        // todo MàJ doc
+                        .build();
+        }
+
+        return paymentResponse;
+    }
+
+    public PaymentResponse getPaymentStatus(TransactionStatusRequest request, RequestConfiguration configuration){
+    PaymentResponse paymentResponse;
+
+        QueryOrderRequest queryOrderRequest = QueryOrderRequest.builder()
+                .appId(configuration.getPartnerConfiguration().getProperty(PartnerConfigurationKeys.APPID))
+                .merchantId(configuration.getContractConfiguration().getProperty(ContractConfigurationKeys.MERCHANT_ID).getValue())
+                .subAppId(configuration.getPartnerConfiguration().getProperty(PartnerConfigurationKeys.SUB_APPID))
+                .subMerchantId(configuration.getContractConfiguration().getProperty(ContractConfigurationKeys.SUB_MERCHANT_ID).getValue())
+                .deviceInfo(configuration.getPartnerConfiguration().getProperty(PartnerConfigurationKeys.DEVICE_INFO))
+                .transactionId(request.getTransactionId())
+                .nonceStr(PluginUtils.generateRandomString(32))
+                .signType(SignType.valueOf(configuration.getPartnerConfiguration().getProperty(PartnerConfigurationKeys.SIGN_TYPE)))
+                .build();
+
+        QueryOrderResponse response = httpService.queryOrder(configuration, queryOrderRequest);
+
+        String partnerTransactionId = response.getTransactionId();
+        BuyerPaymentId buyerPaymentId = new EmptyTransactionDetails();
+        TradeState tradeState = response.getTradeState();
+        switch (tradeState) {
+            case SUCCESS:
+                paymentResponse = PaymentResponseSuccess.PaymentResponseSuccessBuilder
+                        .aPaymentResponseSuccess()
+                        .withPartnerTransactionId(partnerTransactionId)
+                        .withStatusCode(tradeState.name())
+                        .withTransactionDetails(buyerPaymentId)
+                        .build();
+                break;
+            case NOTPAY:
+                paymentResponse = PaymentResponseFailure.PaymentResponseFailureBuilder
+                        .aPaymentResponseFailure()
+                        .withPartnerTransactionId(partnerTransactionId)
+                        .withErrorCode(response.getErrorCode())
+                        .withFailureCause(FailureCause.PAYMENT_PARTNER_ERROR)
+                        .withTransactionDetails(buyerPaymentId)
+                        .build();
+                break;
+            default:
+                paymentResponse = PaymentResponseFailure.PaymentResponseFailureBuilder
+                        .aPaymentResponseFailure()
+                        .withPartnerTransactionId(partnerTransactionId)
+                        .withErrorCode(response.getErrorCode())
+                        .withFailureCause(FailureCause.INVALID_DATA) // todo ca ou un autre mais a definir
+                        .withTransactionDetails(buyerPaymentId)
+                        .build();
         }
 
         return paymentResponse;

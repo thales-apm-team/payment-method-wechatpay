@@ -1,32 +1,41 @@
 package com.payline.payment.wechatpay.service.impl;
 
 import com.payline.payment.wechatpay.MockUtils;
+import com.payline.payment.wechatpay.bean.configuration.RequestConfiguration;
 import com.payline.payment.wechatpay.bean.nested.Code;
+import com.payline.payment.wechatpay.bean.nested.RefundStatus;
 import com.payline.payment.wechatpay.bean.nested.SignType;
 import com.payline.payment.wechatpay.bean.nested.TradeState;
 import com.payline.payment.wechatpay.bean.response.QueryOrderResponse;
+import com.payline.payment.wechatpay.bean.response.QueryRefundResponse;
 import com.payline.payment.wechatpay.exception.PluginException;
 import com.payline.payment.wechatpay.service.HttpService;
 import com.payline.pmapi.bean.common.FailureCause;
+import com.payline.pmapi.bean.payment.request.TransactionStatusRequest;
 import com.payline.pmapi.bean.payment.response.PaymentResponse;
+import com.payline.pmapi.bean.payment.response.buyerpaymentidentifier.impl.EmptyTransactionDetails;
 import com.payline.pmapi.bean.payment.response.impl.PaymentResponseFailure;
 import com.payline.pmapi.bean.payment.response.impl.PaymentResponseSuccess;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import org.mockito.InjectMocks;
-import org.mockito.Mock;
-import org.mockito.Mockito;
-import org.mockito.MockitoAnnotations;
+import org.mockito.*;
 
+import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.mockito.ArgumentMatchers.any;
 
 class PaymentWithRedirectionServiceImplTest {
 
     @InjectMocks
+    @Spy
     PaymentWithRedirectionServiceImpl service = new PaymentWithRedirectionServiceImpl();
     @Mock
     private HttpService httpService;
+
+    RequestConfiguration configuration = new RequestConfiguration(
+            MockUtils.aContractConfiguration()
+            , MockUtils.anEnvironment()
+            , MockUtils.aPartnerConfiguration());
 
     @BeforeEach
     void setup() {
@@ -34,9 +43,75 @@ class PaymentWithRedirectionServiceImplTest {
     }
 
     @Test
-    void handleSessionExpired_SUCCESS(){
+    void handleSessionExpiredPaymentOK() {
+        // create Mocks
+        PaymentResponseSuccess paymentResponseSuccess = PaymentResponseSuccess.PaymentResponseSuccessBuilder
+                .aPaymentResponseSuccess()
+                .withPartnerTransactionId("foo")
+                .withStatusCode("a status code")
+                .withTransactionDetails(new EmptyTransactionDetails())
+                .build();
+        Mockito.doReturn(paymentResponseSuccess).when(service).getPaymentStatus(any(), any());
 
-        QueryOrderResponse queryOrderResponse =  QueryOrderResponse.builder()
+        // call method
+        TransactionStatusRequest request = MockUtils.aPaylineTransactionStatusRequestBuilder().build();
+        PaymentResponse paymentResponse = service.handleSessionExpired(request);
+
+        // assertions
+        assertEquals(paymentResponseSuccess, paymentResponse);
+
+        Mockito.verify(service, Mockito.atLeastOnce()).getPaymentStatus(any(), any());
+    }
+
+    @Test
+    void handleSessionExpiredRefundOK() {
+        // create Mocks
+        PaymentResponseSuccess paymentResponseSuccess = PaymentResponseSuccess.PaymentResponseSuccessBuilder
+                .aPaymentResponseSuccess()
+                .withPartnerTransactionId("foo")
+                .withStatusCode("a status code")
+                .withTransactionDetails(new EmptyTransactionDetails())
+                .build();
+        Mockito.doReturn(paymentResponseSuccess).when(service).getRefundStatus(any(), any());
+
+
+        // call method
+        TransactionStatusRequest request = MockUtils.aPaylineTransactionStatusRequestBuilder()
+                .withTransactionId("REFUND1234556788")
+                .build();
+        PaymentResponse paymentResponse = service.handleSessionExpired(request);
+
+        // assertions
+        assertEquals(paymentResponseSuccess, paymentResponse);
+
+        Mockito.verify(service, Mockito.atLeastOnce()).getRefundStatus(any(), any());
+    }
+
+    @Test
+    void paymentRequest_PluginException() {
+        Mockito.doThrow(new PluginException("foo")).when(service).getPaymentStatus(any(), any());
+
+        // when: sending the request, a PluginException is thrown
+        PaymentResponse paymentResponse = service.handleSessionExpired(MockUtils.aPaylineTransactionStatusRequest());
+
+        Assertions.assertEquals(PaymentResponseFailure.class, paymentResponse.getClass());
+        Assertions.assertEquals(FailureCause.INTERNAL_ERROR, ((PaymentResponseFailure) paymentResponse).getFailureCause());
+    }
+
+    @Test
+    void paymentRequest_RunTimeException() {
+        Mockito.doThrow(new RuntimeException("foo")).when(service).getPaymentStatus(any(), any());
+
+        // when: sending the request, a PluginException is thrown
+        PaymentResponse paymentResponse = service.handleSessionExpired(MockUtils.aPaylineTransactionStatusRequest());
+
+        Assertions.assertEquals(PaymentResponseFailure.class, paymentResponse.getClass());
+        Assertions.assertEquals(FailureCause.INTERNAL_ERROR, ((PaymentResponseFailure) paymentResponse).getFailureCause());
+    }
+
+    @Test
+    void getPaymentStatus_SUCCESS() {
+        QueryOrderResponse queryOrderResponse = QueryOrderResponse.builder()
                 .returnCode(Code.SUCCESS)
                 .appId("appId")
                 .merchantId("merchantId")
@@ -53,19 +128,18 @@ class PaymentWithRedirectionServiceImplTest {
                 .transactionId("transactionId")
                 .build();
 
-        Mockito.doReturn(queryOrderResponse).when(httpService).queryOrder(any(),any());
+        Mockito.doReturn(queryOrderResponse).when(httpService).queryOrder(any(), any());
 
-        PaymentResponse response =  service.handleSessionExpired(MockUtils.aPaylineTransactionStatusRequest());
+        PaymentResponse response = service.handleSessionExpired(MockUtils.aPaylineTransactionStatusRequest());
 
         Assertions.assertEquals(PaymentResponseSuccess.class, response.getClass());
         Assertions.assertEquals(queryOrderResponse.getTransactionId(), ((PaymentResponseSuccess) response).getPartnerTransactionId());
         Assertions.assertEquals(queryOrderResponse.getTradeState().name(), ((PaymentResponseSuccess) response).getStatusCode());
-
     }
-    @Test
-    void handleSessionExpired_NOTPAY(){
 
-        QueryOrderResponse queryOrderResponse =  QueryOrderResponse.builder()
+    @Test
+    void getPaymentStatus_NOTPAY() {
+        QueryOrderResponse queryOrderResponse = QueryOrderResponse.builder()
                 .returnCode(Code.SUCCESS)
                 .appId("appId")
                 .merchantId("merchantId")
@@ -82,22 +156,19 @@ class PaymentWithRedirectionServiceImplTest {
                 .transactionId("transactionId")
                 .build();
 
-        Mockito.doReturn(queryOrderResponse).when(httpService).queryOrder(any(),any());
+        Mockito.doReturn(queryOrderResponse).when(httpService).queryOrder(any(), any());
 
-        PaymentResponse response =  service.handleSessionExpired(MockUtils.aPaylineTransactionStatusRequest());
-
+        PaymentResponse response = service.handleSessionExpired(MockUtils.aPaylineTransactionStatusRequest());
 
         Assertions.assertEquals(PaymentResponseFailure.class, response.getClass());
         Assertions.assertEquals(queryOrderResponse.getTransactionId(), ((PaymentResponseFailure) response).getPartnerTransactionId());
         Assertions.assertEquals(queryOrderResponse.getErrorCode(), ((PaymentResponseFailure) response).getErrorCode());
         Assertions.assertEquals(FailureCause.PAYMENT_PARTNER_ERROR, ((PaymentResponseFailure) response).getFailureCause());
-
     }
 
     @Test
-    void handleSessionExpired_INVALID_DATA(){
-
-        QueryOrderResponse queryOrderResponse =  QueryOrderResponse.builder()
+    void getPaymentStatus_INVALID_DATA() {
+        QueryOrderResponse queryOrderResponse = QueryOrderResponse.builder()
                 .returnCode(Code.SUCCESS)
                 .appId("appId")
                 .merchantId("merchantId")
@@ -114,37 +185,80 @@ class PaymentWithRedirectionServiceImplTest {
                 .transactionId("transactionId")
                 .build();
 
-        Mockito.doReturn(queryOrderResponse).when(httpService).queryOrder(any(),any());
+        Mockito.doReturn(queryOrderResponse).when(httpService).queryOrder(any(), any());
 
-        PaymentResponse response =  service.handleSessionExpired(MockUtils.aPaylineTransactionStatusRequest());
-
+        PaymentResponse response = service.handleSessionExpired(MockUtils.aPaylineTransactionStatusRequest());
 
         Assertions.assertEquals(PaymentResponseFailure.class, response.getClass());
         Assertions.assertEquals(queryOrderResponse.getTransactionId(), ((PaymentResponseFailure) response).getPartnerTransactionId());
         Assertions.assertEquals(queryOrderResponse.getErrorCode(), ((PaymentResponseFailure) response).getErrorCode());
         Assertions.assertEquals(FailureCause.INVALID_DATA, ((PaymentResponseFailure) response).getFailureCause());
-
     }
 
     @Test
-    void paymentRequest_PluginException() {
-        Mockito.doThrow(new PluginException("foo")).when(httpService).queryOrder(any(), any());
+    void getRefundStatus_SUCCESS(){
+        QueryRefundResponse queryRefundResponse = QueryRefundResponse.builder()
+                .appId("appId")
+                .merchantId("mchId")
+                .subMerchantId("subMchId")
+                .nonceStr("123")
+                .returnCode(Code.SUCCESS)
+                .resultCode(Code.SUCCESS)
+                .refundStatus(RefundStatus.SUCCESS)
+                .refundId("123456")
+                .build();
 
-        // when: sending the request, a PluginException is thrown
-        PaymentResponse paymentResponse = service.handleSessionExpired(MockUtils.aPaylineTransactionStatusRequest());
+        Mockito.doReturn(queryRefundResponse).when(httpService).queryRefund(any(), any());
+        TransactionStatusRequest transactionStatusRequest = MockUtils.aPaylineTransactionStatusRequestBuilder().build();
+        PaymentResponse response = service.getRefundStatus(transactionStatusRequest, configuration);
 
-        Assertions.assertEquals(PaymentResponseFailure.class, paymentResponse.getClass());
-        Assertions.assertEquals(FailureCause.INTERNAL_ERROR, ((PaymentResponseFailure) paymentResponse).getFailureCause());
+        Assertions.assertEquals(PaymentResponseSuccess.class, response.getClass());
+        Assertions.assertEquals(MockUtils.TRANSACTION_ID, ((PaymentResponseSuccess) response).getPartnerTransactionId());
+        Assertions.assertEquals("SUCCESS", ((PaymentResponseSuccess) response).getStatusCode());
     }
 
     @Test
-    void paymentRequest_RunTimeException() {
-        Mockito.doThrow(new RuntimeException("foo")).when(httpService).queryOrder(any(), any());
+    void getRefundStatus_PROCESSING(){
+        QueryRefundResponse queryRefundResponse = QueryRefundResponse.builder()
+                .appId("appId")
+                .merchantId("mchId")
+                .subMerchantId("subMchId")
+                .nonceStr("123")
+                .returnCode(Code.SUCCESS)
+                .resultCode(Code.SUCCESS)
+                .refundStatus(RefundStatus.PROCESSING)
+                .refundId("123456")
+                .build();
 
-        // when: sending the request, a PluginException is thrown
-        PaymentResponse paymentResponse = service.handleSessionExpired(MockUtils.aPaylineTransactionStatusRequest());
+        Mockito.doReturn(queryRefundResponse).when(httpService).queryRefund(any(), any());
+        TransactionStatusRequest transactionStatusRequest = MockUtils.aPaylineTransactionStatusRequestBuilder().build();
+        PaymentResponse response = service.getRefundStatus(transactionStatusRequest, configuration);
 
-        Assertions.assertEquals(PaymentResponseFailure.class, paymentResponse.getClass());
-        Assertions.assertEquals(FailureCause.INTERNAL_ERROR, ((PaymentResponseFailure) paymentResponse).getFailureCause());
+        Assertions.assertEquals(PaymentResponseSuccess.class, response.getClass());
+        Assertions.assertEquals(MockUtils.TRANSACTION_ID, ((PaymentResponseSuccess) response).getPartnerTransactionId());
+        Assertions.assertEquals("PENDING", ((PaymentResponseSuccess) response).getStatusCode());
+    }
+
+    @Test
+    void getRefundStatus_REFUNDCLOSE(){
+        QueryRefundResponse queryRefundResponse = QueryRefundResponse.builder()
+                .appId("appId")
+                .merchantId("mchId")
+                .subMerchantId("subMchId")
+                .nonceStr("123")
+                .returnCode(Code.SUCCESS)
+                .resultCode(Code.SUCCESS)
+                .refundStatus(RefundStatus.REFUNDCLOSE)
+                .refundId("123456")
+                .build();
+
+        Mockito.doReturn(queryRefundResponse).when(httpService).queryRefund(any(), any());
+        TransactionStatusRequest transactionStatusRequest = MockUtils.aPaylineTransactionStatusRequestBuilder().build();
+        PaymentResponse response = service.getRefundStatus(transactionStatusRequest, configuration);
+
+        Assertions.assertEquals(PaymentResponseFailure.class, response.getClass());
+        Assertions.assertEquals(MockUtils.TRANSACTION_ID, ((PaymentResponseFailure) response).getPartnerTransactionId());
+        Assertions.assertEquals("REFUNDCLOSE", ((PaymentResponseFailure) response).getErrorCode());
+        Assertions.assertEquals(FailureCause.REFUSED, ((PaymentResponseFailure) response).getFailureCause());
     }
 }

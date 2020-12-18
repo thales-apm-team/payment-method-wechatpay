@@ -13,5 +13,8 @@ public class QueryRefundResponse extends Response{
     @SerializedName("refund_status")
     RefundStatus refundStatus;
 
+    @SerializedName("refund_id$0")
+    String refundId;
+
 
 }
