@@ -9,10 +9,8 @@ import com.payline.pmapi.bean.common.Buyer;
 import com.payline.pmapi.bean.configuration.PartnerConfiguration;
 import com.payline.pmapi.bean.configuration.request.ContractParametersCheckRequest;
 import com.payline.pmapi.bean.notification.request.NotificationRequest;
-import com.payline.pmapi.bean.payment.ContractConfiguration;
-import com.payline.pmapi.bean.payment.ContractProperty;
-import com.payline.pmapi.bean.payment.Environment;
-import com.payline.pmapi.bean.payment.Order;
+import com.payline.pmapi.bean.payment.*;
+import com.payline.pmapi.bean.payment.request.PaymentRequest;
 import com.payline.pmapi.bean.paymentform.request.PaymentFormLogoRequest;
 import com.payline.pmapi.bean.refund.request.RefundRequest;
 import lombok.experimental.UtilityClass;
@@ -270,5 +268,59 @@ public class MockUtils {
                 .withHeaderInfos(new HashMap<>())
                 .withPathInfo("aPathInfo")
                 ;
+    }
+    /**
+     * Generate a valid {@link PaymentRequest}.
+     */
+    public static PaymentRequest aPaylinePaymentRequest() {
+        return aPaylinePaymentRequestBuilder().build();
+    }
+
+    /**
+     * Generate a builder for a valid {@link PaymentRequest}.
+     * This way, some attributes may be overridden to match specific test needs.
+     */
+    public static PaymentRequest.Builder aPaylinePaymentRequestBuilder() {
+        long randomTransactionId = (long) (Math.random() * 100000000000000L);
+        return PaymentRequest.builder()
+                .withAmount(aPaylineAmount())
+                .withBrowser(aBrowser())
+                .withBuyer(aBuyer())
+                .withCaptureNow(true)
+                .withContractConfiguration(aContractConfiguration())
+                .withEnvironment(anEnvironment())
+                .withLocale(Locale.getDefault())
+                .withOrder(aPaylineOrder())
+                .withPartnerConfiguration(aPartnerConfiguration())
+                .withPaymentFormContext(aPaymentFormContext())
+                .withSoftDescriptor("Test")
+                .withTransactionId("PAYLINE"+randomTransactionId);
+    }
+    /**
+     * Generate a valid {@link Browser}.
+     */
+    public static Browser aBrowser() {
+        return Browser.BrowserBuilder.aBrowser()
+                .withLocale(Locale.getDefault())
+                .withIp("192.168.0.1")
+                .withUserAgent(aUserAgent())
+                .build();
+    }
+    /**
+     * Generate a valid {@link PaymentFormContext}.
+     */
+    public static PaymentFormContext aPaymentFormContext() {
+        Map<String, String> paymentFormParameter = new HashMap<>();
+
+        return PaymentFormContext.PaymentFormContextBuilder.aPaymentFormContext()
+                .withPaymentFormParameter(paymentFormParameter)
+                .withSensitivePaymentFormParameter(new HashMap<>())
+                .build();
+    }
+    /**
+     * @return a valid user agent.
+     */
+    public static String aUserAgent() {
+        return "Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:67.0) Gecko/20100101 Firefox/67.0";
     }
 }
