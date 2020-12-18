@@ -23,7 +23,7 @@ import java.util.Locale;
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.doReturn;
 
-public class LogoPaymentFormConfigurationServiceTest {
+class LogoPaymentFormConfigurationServiceTest {
 
     /**
      * Private class used to test abstract class {@link LogoPaymentFormConfigurationService}.
@@ -111,8 +111,10 @@ public class LogoPaymentFormConfigurationServiceTest {
         doReturn("png").when( config ).get("logo.format");
         doReturn("image/png").when( config ).get("logo.contentType");
 
+        Locale locale = Locale.getDefault();
+
         // when: calling method getLogo(), then: an exception is thrown
-        assertThrows( PluginException.class, () -> testService.getLogo( "whatever", Locale.getDefault() ) );
+        assertThrows( PluginException.class, () -> testService.getLogo( "whatever", locale) );
     }
 
 }

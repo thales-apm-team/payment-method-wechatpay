@@ -61,13 +61,13 @@ public class HttpClient {
         int socketTimeout;
         try {
             // request config timeouts (in seconds)
-            ConfigProperties config = ConfigProperties.getInstance();
-            connectionRequestTimeout = Integer.parseInt(config.get("http.connectionRequestTimeout"));
-            connectTimeout = Integer.parseInt(config.get("http.connectTimeout"));
-            socketTimeout = Integer.parseInt(config.get("http.socketTimeout"));
+            ConfigProperties configProperties = ConfigProperties.getInstance();
+            connectionRequestTimeout = Integer.parseInt(configProperties.get("http.connectionRequestTimeout"));
+            connectTimeout = Integer.parseInt(configProperties.get("http.connectTimeout"));
+            socketTimeout = Integer.parseInt(configProperties.get("http.socketTimeout"));
 
             // retries
-            this.retries = Integer.parseInt(config.get("http.retries"));
+            this.retries = Integer.parseInt(configProperties.get("http.retries"));
         } catch (NumberFormatException e) {
             throw new PluginException("plugin error: http.* properties must be integers", e);
         }
@@ -169,18 +169,18 @@ public class HttpClient {
                         .setSSLSocketFactory(new SSLConnectionSocketFactory(HttpsURLConnection.getDefaultSSLSocketFactory(), SSLConnectionSocketFactory.getDefaultHostnameVerifier()))
                         .build();
 
-            } catch (IOException e) {
-                e.printStackTrace();
             } catch (CertificateException e) {
-                e.printStackTrace();
+                throw new PluginException("Plugin error: Certificate error", e);
             } catch (NoSuchAlgorithmException e) {
-                e.printStackTrace();
+                throw new PluginException("Plugin error: Invalid algorithm", e);
             } catch (UnrecoverableKeyException e) {
-                e.printStackTrace();
+                throw new PluginException("Plugin error: Invalid Key", e);
             } catch (KeyStoreException e) {
-                e.printStackTrace();
+                throw new PluginException("Plugin error: Keystore error", e);
             } catch (KeyManagementException e) {
-                e.printStackTrace();
+                throw new PluginException("Plugin error: Key error", e);
+            } catch (IOException e) {
+                throw new PluginException("Plugin error: Certificate loading error", e);
             }
         }
     }

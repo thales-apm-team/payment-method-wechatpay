@@ -21,7 +21,7 @@ import org.mockito.MockitoAnnotations;
 
 import static org.mockito.ArgumentMatchers.any;
 
-public class PaymentWithRedirectionServiceImplTest {
+class PaymentWithRedirectionServiceImplTest {
 
     @InjectMocks
     PaymentWithRedirectionServiceImpl service = new PaymentWithRedirectionServiceImpl();

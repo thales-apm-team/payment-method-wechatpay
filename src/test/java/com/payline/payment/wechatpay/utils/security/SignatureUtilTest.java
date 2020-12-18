@@ -86,7 +86,8 @@ class SignatureUtilTest {
 
         sb.append("&key=").append(key);
 
-        assertThrows(PluginException.class, () -> utils.hashWithSha256(sb.toString(), key));
+        String stringToHash = sb.toString();
+        assertThrows(PluginException.class, () -> utils.hashWithSha256(stringToHash, key));
     }
 
     @Test

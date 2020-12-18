@@ -8,14 +8,14 @@ import com.payline.pmapi.bean.paymentform.response.configuration.PaymentFormConf
 import com.payline.pmapi.bean.paymentform.response.configuration.impl.PaymentFormConfigurationResponseSpecific;
 
 public class PaymentFormConfigurationServiceImpl extends LogoPaymentFormConfigurationService {
-    private static final I18nService i18n = I18nService.getInstance();
+    private static final I18nService i18nService = I18nService.getInstance();
 
     @Override
     public PaymentFormConfigurationResponse getPaymentFormConfiguration(PaymentFormConfigurationRequest paymentFormConfigurationRequest) {
         NoFieldForm noFieldForm = NoFieldForm.NoFieldFormBuilder.aNoFieldForm()
                 .withDisplayButton(true)
-                .withButtonText(i18n.getMessage("form.button.text", paymentFormConfigurationRequest.getLocale()))
-                .withDescription(i18n.getMessage("form.button.description", paymentFormConfigurationRequest.getLocale()))
+                .withButtonText(i18nService.getMessage("form.button.text", paymentFormConfigurationRequest.getLocale()))
+                .withDescription(i18nService.getMessage("form.button.description", paymentFormConfigurationRequest.getLocale()))
                 .build();
 
         return PaymentFormConfigurationResponseSpecific.PaymentFormConfigurationResponseSpecificBuilder.aPaymentFormConfigurationResponseSpecific()

@@ -16,7 +16,7 @@ import org.mockito.MockitoAnnotations;
 
 import static org.mockito.ArgumentMatchers.any;
 
-public class PaymentServiceImplTest {
+class PaymentServiceImplTest {
     @InjectMocks
     private PaymentServiceImpl service = new PaymentServiceImpl();
     @Mock

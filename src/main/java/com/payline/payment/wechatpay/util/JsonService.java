@@ -68,8 +68,10 @@ public class JsonService {
             Element root = document.createElement("xml");
             document.appendChild(root);
 
-            for (String key : data.keySet()) {
-                String value = data.get(key) != null ? data.get(key).trim() : "";
+            for (Map.Entry<String, String> entry : data.entrySet()) {
+                String key = entry.getKey();
+                String value = entry.getValue() != null ? entry.getValue().trim() : "";
+
                 Element filed = document.createElement(key);
                 filed.appendChild(document.createTextNode(value));
                 root.appendChild(filed);
