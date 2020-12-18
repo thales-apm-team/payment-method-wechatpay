@@ -14,6 +14,7 @@ import java.awt.image.BufferedImage;
 
 @Log4j2
 public class QRCodeService {
+    private static final String QRCODE_GENERATION_ERROR = "QRCode generation error";
 
     // --- Singleton Holder pattern + initialization BEGIN
     private QRCodeService() {
@@ -35,17 +36,17 @@ public class QRCodeService {
      * @return QRCode Buffered image
      * @throws PluginException
      */
-    public BufferedImage generateMatrix(String data, int size) throws PluginException {
+    public BufferedImage generateMatrix(String data, int size) {
         if(PluginUtils.isEmpty(data)){
-            log.error("QRCode generation error : Empty data");
-            throw new PluginException("QRCode generation error", FailureCause.INVALID_DATA);
+            log.error(QRCODE_GENERATION_ERROR + " : Empty data");
+            throw new PluginException(QRCODE_GENERATION_ERROR, FailureCause.INVALID_DATA);
         }
         try {
             BitMatrix bitMatrix = new QRCodeWriter().encode(data, BarcodeFormat.QR_CODE, size, size);
             return MatrixToImageWriter.toBufferedImage(bitMatrix);
         }catch (IllegalArgumentException | WriterException e){
-            log.error("QRCode generation error", e);
-            throw new PluginException("QRCode generation error", FailureCause.INVALID_DATA);
+            log.error(QRCODE_GENERATION_ERROR, e);
+            throw new PluginException(QRCODE_GENERATION_ERROR, FailureCause.INVALID_DATA);
         }
     }
 }
