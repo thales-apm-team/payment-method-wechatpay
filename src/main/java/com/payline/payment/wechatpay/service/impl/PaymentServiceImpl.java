@@ -2,6 +2,7 @@ package com.payline.payment.wechatpay.service.impl;
 
 import com.payline.payment.wechatpay.bean.configuration.RequestConfiguration;
 import com.payline.payment.wechatpay.bean.nested.SignType;
+import com.payline.payment.wechatpay.bean.nested.TradeType;
 import com.payline.payment.wechatpay.bean.request.UnifiedOrderRequest;
 import com.payline.payment.wechatpay.bean.response.UnifiedOrderResponse;
 import com.payline.payment.wechatpay.exception.PluginException;
@@ -39,7 +40,7 @@ public class PaymentServiceImpl implements PaymentService {
                     .totalFee(paymentRequest.getAmount().getAmountInSmallestUnit().toString())
                     .spBillCreateIp(paymentRequest.getBrowser().getIp())
                     .notifyUrl(configuration.getEnvironment().getNotificationURL())
-                    .tradeType("NATIVE")
+                    .tradeType(TradeType.NATIVE)
                     .productId(paymentRequest.getOrder().getReference())
                     .appId(configuration.getPartnerConfiguration().getProperty(PartnerConfigurationKeys.APPID))
                     .merchantId(configuration.getContractConfiguration().getProperty(ContractConfigurationKeys.MERCHANT_ID).getValue())

@@ -7,7 +7,7 @@ import com.payline.payment.wechatpay.util.constant.ContractConfigurationKeys;
 import com.payline.payment.wechatpay.util.constant.PartnerConfigurationKeys;
 import com.payline.payment.wechatpay.util.properties.ConfigProperties;
 import com.payline.pmapi.bean.common.FailureCause;
-import com.payline.pmapi.logger.LogManager;
+import lombok.extern.log4j.Log4j2;
 import org.apache.http.Header;
 import org.apache.http.client.config.RequestConfig;
 import org.apache.http.client.methods.CloseableHttpResponse;
@@ -22,7 +22,6 @@ import org.apache.http.conn.ssl.SSLConnectionSocketFactory;
 import org.apache.http.entity.StringEntity;
 import org.apache.http.impl.client.HttpClientBuilder;
 import org.apache.http.impl.conn.BasicHttpClientConnectionManager;
-import org.apache.logging.log4j.Logger;
 
 import javax.net.ssl.HttpsURLConnection;
 import javax.net.ssl.KeyManagerFactory;
@@ -35,9 +34,8 @@ import java.nio.charset.StandardCharsets;
 import java.security.*;
 import java.security.cert.CertificateException;
 import java.util.concurrent.atomic.AtomicBoolean;
-
+@Log4j2
 public class HttpClient {
-    private static final Logger LOGGER = LogManager.getLogger(HttpClient.class);
     protected ConfigProperties config = ConfigProperties.getInstance();
 
     /**
@@ -199,11 +197,11 @@ public class HttpClient {
         int attempts = 1;
 
         while (strResponse == null && attempts <= this.retries) {
-            LOGGER.info("Start call to partner API [{} {}] (attempt {})", httpRequest.getMethod(), httpRequest.getURI(), attempts);
+            log.info("Start call to partner API [{} {}] (attempt {})", httpRequest.getMethod(), httpRequest.getURI(), attempts);
             try (CloseableHttpResponse httpResponse = (CloseableHttpResponse) this.client.execute(httpRequest)) {
                 strResponse = StringResponse.fromHttpResponse(httpResponse);
             } catch (IOException e) {
-                LOGGER.error("An error occurred during the HTTP call :", e);
+                log.error("An error occurred during the HTTP call :", e);
                 strResponse = null;
             } finally {
                 attempts++;
@@ -213,7 +211,7 @@ public class HttpClient {
         if (strResponse == null) {
             throw new PluginException("Failed to contact the partner API", FailureCause.COMMUNICATION_ERROR);
         }
-        LOGGER.info("APIResponseError obtained from partner API [{} {}]", strResponse.getStatusCode(), strResponse.getStatusMessage());
+        log.info("APIResponseError obtained from partner API [{} {}]", strResponse.getStatusCode(), strResponse.getStatusMessage());
         return strResponse;
     }
 

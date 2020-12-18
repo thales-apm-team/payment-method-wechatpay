@@ -65,19 +65,6 @@ public class PluginException extends RuntimeException {
     }
 
     /**
-     * Instantiate a builder for {@link PaymentFormConfigurationResponseFailure}.
-     * Returning a builder instead of the class instance allow subsequent complement,
-     * with other fields than 'failureCause' or 'errorCode', such as 'partnerTransactionId' for example.
-     *
-     * @return A pre-configured builder
-     */
-    public PaymentFormConfigurationResponseFailure.PaymentFormConfigurationResponseFailureBuilder toPaymentFormConfigurationResponseFailureBuilder() {
-        return PaymentFormConfigurationResponseFailure.PaymentFormConfigurationResponseFailureBuilder.aPaymentFormConfigurationResponseFailure()
-                .withFailureCause(failureCause)
-                .withErrorCode(errorCode);
-    }
-
-    /**
      * Instantiate a builder for {@link RefundResponseFailure}.
      * Returning a builder instead of the class instance allow subsequent complement,
      * with other fields than 'failureCause' or 'errorCode', such as 'partnerTransactionId' for example.
@@ -89,22 +76,4 @@ public class PluginException extends RuntimeException {
                 .withFailureCause(failureCause)
                 .withErrorCode(errorCode);
     }
-
-    public ResetResponseFailure.ResetResponseFailureBuilder toResetResponseFailureBuilder() {
-        return ResetResponseFailure.ResetResponseFailureBuilder.aResetResponseFailure()
-                .withFailureCause(failureCause)
-                .withErrorCode(errorCode);
-    }
-
-    /**
-     * Utility static method to build an error code from a {@link RuntimeException}.
-     *
-     * @param e The exception
-     * @return A truncated errorCode to insert into any FailureResponse object.
-     */
-    public static String runtimeErrorCode(RuntimeException e) {
-        String errorCode = "plugin error: " + e.toString().substring(e.toString().lastIndexOf('.') + 1);
-        return PluginUtils.truncate(errorCode, ERROR_CODE_MAX_LENGTH);
-    }
-
 }

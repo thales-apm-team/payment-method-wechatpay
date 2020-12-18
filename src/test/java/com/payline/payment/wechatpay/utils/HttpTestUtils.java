@@ -1,5 +1,6 @@
 package com.payline.payment.wechatpay.utils;
 
+import com.payline.payment.wechatpay.util.PluginUtils;
 import com.payline.payment.wechatpay.util.http.StringResponse;
 import org.apache.http.Header;
 import org.apache.http.ProtocolVersion;
@@ -53,7 +54,7 @@ class HttpTestUtils {
         StringResponse response = new StringResponse();
 
         try {
-            if (content != null && !content.isEmpty()) {
+            if(!PluginUtils.isEmpty(content)) {
                 FieldSetter.setField(response, StringResponse.class.getDeclaredField("content"), content);
             }
             if (headers != null && headers.size() > 0) {
@@ -62,7 +63,7 @@ class HttpTestUtils {
             if (statusCode >= 100 && statusCode < 600) {
                 FieldSetter.setField(response, StringResponse.class.getDeclaredField("statusCode"), statusCode);
             }
-            if (statusMessage != null && !statusMessage.isEmpty()) {
+            if (!PluginUtils.isEmpty(statusMessage)) {
                 FieldSetter.setField(response, StringResponse.class.getDeclaredField("statusMessage"), statusMessage);
             }
         }
