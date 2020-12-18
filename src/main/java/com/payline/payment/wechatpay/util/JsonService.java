@@ -1,6 +1,8 @@
 package com.payline.payment.wechatpay.util;
 
 import com.google.gson.Gson;
+import com.payline.payment.wechatpay.exception.PluginException;
+import lombok.extern.log4j.Log4j2;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 import org.w3c.dom.Node;
@@ -25,6 +27,7 @@ import java.nio.charset.StandardCharsets;
 import java.util.HashMap;
 import java.util.Map;
 
+@Log4j2
 public class JsonService {
     Gson gson = new Gson();
 
@@ -119,13 +122,18 @@ public class JsonService {
             }
 
             stream.close();
+
         } catch (ParserConfigurationException e) {
-            e.printStackTrace();
+            log.info("Parser configuration error", e);
+            throw new PluginException("Plugin error: Parser configuration error", e);
         } catch (IOException e) {
-            e.printStackTrace();    // todo catcher proprement
+            log.info("InputStream error", e);
+            throw new PluginException("Plugin error: InputStream error", e);
         } catch (SAXException e) {
-            e.printStackTrace();
+            log.info("Parsing error", e);
+            throw new PluginException("Plugin error: Parsing error", e);
         }
+
         return data;
     }
 
