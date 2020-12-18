@@ -7,8 +7,8 @@ import com.payline.payment.wechatpay.bean.request.*;
 import com.payline.payment.wechatpay.bean.response.*;
 import com.payline.payment.wechatpay.exception.InvalidDataException;
 import com.payline.payment.wechatpay.exception.PluginException;
+import com.payline.payment.wechatpay.util.Converter;
 import com.payline.payment.wechatpay.util.ErrorConverter;
-import com.payline.payment.wechatpay.util.JsonService;
 import com.payline.payment.wechatpay.util.constant.PartnerConfigurationKeys;
 import com.payline.payment.wechatpay.util.http.HttpClient;
 import com.payline.payment.wechatpay.util.http.StringResponse;
@@ -27,7 +27,7 @@ public class HttpService {
     private static final String INVALID_URL_MESSAGE = "invalid URL";
     private static final String INVALID_URL_LOG_MESSAGE = "invalid URL for property: {}";
     private HttpClient client = HttpClient.getInstance();
-    private JsonService jsonService = JsonService.getInstance();
+    private Converter converter = Converter.getInstance();
     private SignatureUtil signatureUtil = SignatureUtil.getInstance();
     private ErrorConverter errorConverter = ErrorConverter.getInstance();
 
@@ -55,12 +55,12 @@ public class HttpService {
                     .getProperty(PartnerConfigurationKeys.UNIFIED_ORDER_URL)
             );
             Header[] headers = initHeaders();
-            Map<String, String> map = jsonService.objectToMap(request);
+            Map<String, String> map = converter.objectToMap(request);
             String body = signatureUtil.generateSignedXml(map, key, request.getSignType());
 
             // does the call
             StringResponse response = client.post(uri, headers, body);
-            UnifiedOrderResponse unifiedOrderResponse = jsonService.xmlToObject(response.getContent(), UnifiedOrderResponse.class);
+            UnifiedOrderResponse unifiedOrderResponse = converter.xmlToObject(response.getContent(), UnifiedOrderResponse.class);
 
             // check response
             checkResponse(unifiedOrderResponse, key, request.getSignType());
@@ -82,12 +82,12 @@ public class HttpService {
                     .getProperty(PartnerConfigurationKeys.QUERY_ORDER_URL)
             );
             Header[] headers = initHeaders();
-            Map<String, String> map = jsonService.objectToMap(request);
+            Map<String, String> map = converter.objectToMap(request);
             String body = signatureUtil.generateSignedXml(map, key, request.getSignType());
 
             // does the call
             StringResponse response = client.post(uri, headers, body);
-            QueryOrderResponse queryOrderResponse = jsonService.xmlToObject(response.getContent(), QueryOrderResponse.class);
+            QueryOrderResponse queryOrderResponse = converter.xmlToObject(response.getContent(), QueryOrderResponse.class);
 
             // check response
             checkResponse(queryOrderResponse, key, request.getSignType());
@@ -109,12 +109,12 @@ public class HttpService {
                     .getProperty(PartnerConfigurationKeys.SUBMIT_REFUND_URL)
             );
             Header[] headers = initHeaders();
-            Map<String, String> map = jsonService.objectToMap(request);
+            Map<String, String> map = converter.objectToMap(request);
             String body = signatureUtil.generateSignedXml(map, key, request.getSignType());
 
             // does the call
             StringResponse response = client.post(uri, headers, body);
-            SubmitRefundResponse submitRefundResponse = jsonService.xmlToObject(response.getContent(), SubmitRefundResponse.class);
+            SubmitRefundResponse submitRefundResponse = converter.xmlToObject(response.getContent(), SubmitRefundResponse.class);
 
             // check response
             checkResponse(submitRefundResponse, key, request.getSignType());
@@ -136,12 +136,12 @@ public class HttpService {
                     .getProperty(PartnerConfigurationKeys.QUERY_REFUND_URL)
             );
             Header[] headers = initHeaders();
-            Map<String, String> map = jsonService.objectToMap(request);
+            Map<String, String> map = converter.objectToMap(request);
             String body = signatureUtil.generateSignedXml(map, key, request.getSignType());
 
             // does the call
             StringResponse response = client.post(uri, headers, body);
-            QueryRefundResponse queryRefundResponse = jsonService.xmlToObject(response.getContent(), QueryRefundResponse.class);
+            QueryRefundResponse queryRefundResponse = converter.xmlToObject(response.getContent(), QueryRefundResponse.class);
 
             // check response
             checkResponse(queryRefundResponse, key, request.getSignType());
@@ -163,12 +163,12 @@ public class HttpService {
                     .getProperty(PartnerConfigurationKeys.DOWNLOAD_TRANSACTIONS_URL)
             );
             Header[] headers = initHeaders();
-            Map<String, String> map = jsonService.objectToMap(request);
+            Map<String, String> map = converter.objectToMap(request);
             String body = signatureUtil.generateSignedXml(map, key, request.getSignType());
 
             // does the call
             StringResponse sResponse = client.post(uri, headers, body);
-            Response response = jsonService.xmlToObject(sResponse.getContent(), Response.class);
+            Response response = converter.xmlToObject(sResponse.getContent(), Response.class);
 
             // check response
             checkReturnCode(response);
@@ -196,7 +196,7 @@ public class HttpService {
     }
 
     void checkSignature(Response response, String key, SignType signType) {
-        Map<String, String> respData = jsonService.objectToMap(response);
+        Map<String, String> respData = converter.objectToMap(response);
         if (!signatureUtil.isSignatureValid(respData, key, signType)) {
             log.error("Invalid sign value in XML: {}", response.toString());
             throw new PluginException("Invalid signature", FailureCause.INVALID_DATA);

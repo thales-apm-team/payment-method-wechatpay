@@ -9,8 +9,9 @@ import com.payline.payment.wechatpay.bean.response.QueryOrderResponse;
 import com.payline.payment.wechatpay.exception.PluginException;
 import com.payline.payment.wechatpay.service.HttpService;
 import com.payline.payment.wechatpay.service.RequestConfigurationService;
-import com.payline.payment.wechatpay.util.JsonService;
+import com.payline.payment.wechatpay.util.Converter;
 import com.payline.payment.wechatpay.util.PluginUtils;
+import com.payline.payment.wechatpay.util.XMLService;
 import com.payline.payment.wechatpay.util.constant.ContractConfigurationKeys;
 import com.payline.payment.wechatpay.util.constant.PartnerConfigurationKeys;
 import com.payline.payment.wechatpay.util.security.SignatureUtil;
@@ -33,7 +34,8 @@ import java.util.Map;
 
 @Log4j2
 public class NotificationServiceImpl implements NotificationService {
-    JsonService jsonService = JsonService.getInstance();
+    Converter converter = Converter.getInstance();
+    XMLService xmlService = XMLService.getInstance();
     HttpService httpService = HttpService.getInstance();
     SignatureUtil signatureUtil = SignatureUtil.getInstance();
 
@@ -52,7 +54,7 @@ public class NotificationServiceImpl implements NotificationService {
             // get notification data
             String notificationMessage = PluginUtils.inputStreamToString(notificationRequest.getContent());
 
-            Map<String, String> mNotificationMessage = jsonService.xmlToMap(notificationMessage);
+            Map<String, String> mNotificationMessage = xmlService.xmlToMap(notificationMessage);
 
             // verify Signature
             String key = configuration.getPartnerConfiguration().getProperty(PartnerConfigurationKeys.KEY);
@@ -62,7 +64,7 @@ public class NotificationServiceImpl implements NotificationService {
                 throw new PluginException("Invalid signature", FailureCause.INVALID_DATA);
             }
 
-            NotificationMessage message = jsonService.mapToObject(mNotificationMessage, NotificationMessage.class);
+            NotificationMessage message = converter.mapToObject(mNotificationMessage, NotificationMessage.class);
             String transactionId = message.getTransactionId();
 
             // call WeChatPay API to get the transaction status

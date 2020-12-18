@@ -8,8 +8,8 @@ import com.payline.payment.wechatpay.bean.nested.TradeState;
 import com.payline.payment.wechatpay.bean.request.*;
 import com.payline.payment.wechatpay.bean.response.*;
 import com.payline.payment.wechatpay.exception.PluginException;
+import com.payline.payment.wechatpay.util.Converter;
 import com.payline.payment.wechatpay.util.ErrorConverter;
-import com.payline.payment.wechatpay.util.JsonService;
 import com.payline.payment.wechatpay.util.http.HttpClient;
 import com.payline.payment.wechatpay.util.http.StringResponse;
 import com.payline.payment.wechatpay.util.security.SignatureUtil;
@@ -38,13 +38,13 @@ class HttpServiceTest {
     private HttpClient client;
 
     @Mock
-    private JsonService jsonService;
+    private Converter converter;
 
     @Mock
     private SignatureUtil signatureUtil;
 
     @Mock
-    private ErrorConverter converter;
+    private ErrorConverter errorConverter;
 
     @BeforeEach
     void setUp() {
@@ -66,7 +66,7 @@ class HttpServiceTest {
         // create Mocks
         Map<String, String> map = new HashMap<>();
         map.put("1", "2");
-        Mockito.doReturn(map).when(jsonService).objectToMap(any());
+        Mockito.doReturn(map).when(converter).objectToMap(any());
         Mockito.doReturn("thisIsASignedXMLMessage").when(signatureUtil).generateSignedXml(any(), any(), any());
 
         StringResponse sr = new StringResponse(200, null, "a content", null);
@@ -81,7 +81,7 @@ class HttpServiceTest {
                 .returnCode(Code.SUCCESS)
                 .resultCode(Code.SUCCESS)
                 .build();
-        Mockito.doReturn(unifiedOrderResponse).when(jsonService).xmlToObject(any(), any());
+        Mockito.doReturn(unifiedOrderResponse).when(converter).xmlToObject(any(), any());
 
         Mockito.doNothing().when(service).checkResponse(any(), any(), any());
 
@@ -96,9 +96,9 @@ class HttpServiceTest {
         UnifiedOrderResponse response = service.unifiedOrder(configuration, request);
 
         // Assertions
-        Mockito.verify(jsonService, Mockito.atLeastOnce()).objectToMap(eq(request));
+        Mockito.verify(converter, Mockito.atLeastOnce()).objectToMap(eq(request));
         Mockito.verify(signatureUtil, Mockito.atLeastOnce()).generateSignedXml(eq(map), eq("key"), any());
-        Mockito.verify(jsonService, Mockito.atLeastOnce()).xmlToObject(eq("a content"), eq(UnifiedOrderResponse.class));
+        Mockito.verify(converter, Mockito.atLeastOnce()).xmlToObject(eq("a content"), eq(UnifiedOrderResponse.class));
         Mockito.verify(client, Mockito.atLeastOnce()).post(any(), any(), eq("thisIsASignedXMLMessage"));
         Mockito.verify(service, Mockito.atLeastOnce()).checkResponse(eq(unifiedOrderResponse), eq("key"), eq(SignType.MD5));
 
@@ -110,7 +110,7 @@ class HttpServiceTest {
         // create Mocks
         Map<String, String> map = new HashMap<>();
         map.put("1", "2");
-        Mockito.doReturn(map).when(jsonService).objectToMap(any());
+        Mockito.doReturn(map).when(converter).objectToMap(any());
         Mockito.doReturn("thisIsASignedXMLMessage").when(signatureUtil).generateSignedXml(any(), any(), any());
 
         StringResponse sr = new StringResponse(200, null, "a content", null);
@@ -126,7 +126,7 @@ class HttpServiceTest {
                 .resultCode(Code.SUCCESS)
                 .tradeState(TradeState.SUCCESS)
                 .build();
-        Mockito.doReturn(queryOrderResponse).when(jsonService).xmlToObject(any(), any());
+        Mockito.doReturn(queryOrderResponse).when(converter).xmlToObject(any(), any());
 
         Mockito.doNothing().when(service).checkResponse(any(), any(), any());
 
@@ -141,9 +141,9 @@ class HttpServiceTest {
         QueryOrderResponse response = service.queryOrder(configuration, request);
 
         // Assertions
-        Mockito.verify(jsonService, Mockito.atLeastOnce()).objectToMap(eq(request));
+        Mockito.verify(converter, Mockito.atLeastOnce()).objectToMap(eq(request));
         Mockito.verify(signatureUtil, Mockito.atLeastOnce()).generateSignedXml(eq(map), eq("key"), any());
-        Mockito.verify(jsonService, Mockito.atLeastOnce()).xmlToObject(eq("a content"), eq(QueryOrderResponse.class));
+        Mockito.verify(converter, Mockito.atLeastOnce()).xmlToObject(eq("a content"), eq(QueryOrderResponse.class));
         Mockito.verify(client, Mockito.atLeastOnce()).post(any(), any(), eq("thisIsASignedXMLMessage"));
         Mockito.verify(service, Mockito.atLeastOnce()).checkResponse(eq(queryOrderResponse), eq("key"), eq(SignType.MD5));
 
@@ -155,7 +155,7 @@ class HttpServiceTest {
         // create Mocks
         Map<String, String> map = new HashMap<>();
         map.put("1", "2");
-        Mockito.doReturn(map).when(jsonService).objectToMap(any());
+        Mockito.doReturn(map).when(converter).objectToMap(any());
         Mockito.doReturn("thisIsASignedXMLMessage").when(signatureUtil).generateSignedXml(any(), any(), any());
 
         StringResponse sr = new StringResponse(200, null, "a content", null);
@@ -170,7 +170,7 @@ class HttpServiceTest {
                 .returnCode(Code.SUCCESS)
                 .resultCode(Code.SUCCESS)
                 .build();
-        Mockito.doReturn(submitRefundResponse).when(jsonService).xmlToObject(any(), any());
+        Mockito.doReturn(submitRefundResponse).when(converter).xmlToObject(any(), any());
 
         Mockito.doNothing().when(service).checkResponse(any(), any(), any());
 
@@ -186,9 +186,9 @@ class HttpServiceTest {
         SubmitRefundResponse response = service.submitRefund(configuration, request);
 
         // Assertions
-        Mockito.verify(jsonService, Mockito.atLeastOnce()).objectToMap(eq(request));
+        Mockito.verify(converter, Mockito.atLeastOnce()).objectToMap(eq(request));
         Mockito.verify(signatureUtil, Mockito.atLeastOnce()).generateSignedXml(eq(map), eq("key"), any());
-        Mockito.verify(jsonService, Mockito.atLeastOnce()).xmlToObject(eq("a content"), eq(SubmitRefundResponse.class));
+        Mockito.verify(converter, Mockito.atLeastOnce()).xmlToObject(eq("a content"), eq(SubmitRefundResponse.class));
         Mockito.verify(client, Mockito.atLeastOnce()).post(any(), any(), eq("thisIsASignedXMLMessage"));
         Mockito.verify(service, Mockito.atLeastOnce()).checkResponse(eq(submitRefundResponse), eq("key"), eq(SignType.MD5));
 
@@ -200,7 +200,7 @@ class HttpServiceTest {
         // create Mocks
         Map<String, String> map = new HashMap<>();
         map.put("1", "2");
-        Mockito.doReturn(map).when(jsonService).objectToMap(any());
+        Mockito.doReturn(map).when(converter).objectToMap(any());
         Mockito.doReturn("thisIsASignedXMLMessage").when(signatureUtil).generateSignedXml(any(), any(), any());
 
         StringResponse sr = new StringResponse(200, null, "a content", null);
@@ -215,7 +215,7 @@ class HttpServiceTest {
                 .returnCode(Code.SUCCESS)
                 .resultCode(Code.SUCCESS)
                 .build();
-        Mockito.doReturn(queryRefundResponse).when(jsonService).xmlToObject(any(), any());
+        Mockito.doReturn(queryRefundResponse).when(converter).xmlToObject(any(), any());
 
         Mockito.doNothing().when(service).checkResponse(any(), any(), any());
 
@@ -230,9 +230,9 @@ class HttpServiceTest {
         QueryRefundResponse response = service.queryRefund(configuration, request);
 
         // Assertions
-        Mockito.verify(jsonService, Mockito.atLeastOnce()).objectToMap(eq(request));
+        Mockito.verify(converter, Mockito.atLeastOnce()).objectToMap(eq(request));
         Mockito.verify(signatureUtil, Mockito.atLeastOnce()).generateSignedXml(eq(map), eq("key"), any());
-        Mockito.verify(jsonService, Mockito.atLeastOnce()).xmlToObject(eq("a content"), eq(QueryRefundResponse.class));
+        Mockito.verify(converter, Mockito.atLeastOnce()).xmlToObject(eq("a content"), eq(QueryRefundResponse.class));
         Mockito.verify(client, Mockito.atLeastOnce()).post(any(), any(), eq("thisIsASignedXMLMessage"));
         Mockito.verify(service, Mockito.atLeastOnce()).checkResponse(eq(queryRefundResponse), eq("key"), eq(SignType.MD5));
 
@@ -244,7 +244,7 @@ class HttpServiceTest {
         // create Mocks
         Map<String, String> map = new HashMap<>();
         map.put("1", "2");
-        Mockito.doReturn(map).when(jsonService).objectToMap(any());
+        Mockito.doReturn(map).when(converter).objectToMap(any());
         Mockito.doReturn("thisIsASignedXMLMessage").when(signatureUtil).generateSignedXml(any(), any(), any());
 
         StringResponse sr = new StringResponse(200, null, "a content", null);
@@ -259,7 +259,7 @@ class HttpServiceTest {
                 .returnCode(Code.SUCCESS)
                 .resultCode(Code.SUCCESS)
                 .build();
-        Mockito.doReturn(weChatPayResponse).when(jsonService).xmlToObject(any(), any());
+        Mockito.doReturn(weChatPayResponse).when(converter).xmlToObject(any(), any());
 
         Mockito.doNothing().when(service).checkReturnCode(any());
         Mockito.doNothing().when(service).checkSignature(any(), any(), any());
@@ -275,9 +275,9 @@ class HttpServiceTest {
         Response response = service.downloadTransactionHistory(configuration, request);
 
         // Assertions
-        Mockito.verify(jsonService, Mockito.atLeastOnce()).objectToMap(eq(request));
+        Mockito.verify(converter, Mockito.atLeastOnce()).objectToMap(eq(request));
         Mockito.verify(signatureUtil, Mockito.atLeastOnce()).generateSignedXml(eq(map), eq("key"), any());
-        Mockito.verify(jsonService, Mockito.atLeastOnce()).xmlToObject(eq("a content"), eq(Response.class));
+        Mockito.verify(converter, Mockito.atLeastOnce()).xmlToObject(eq("a content"), eq(Response.class));
         Mockito.verify(client, Mockito.atLeastOnce()).post(any(), any(), eq("thisIsASignedXMLMessage"));
         Mockito.verify(service, Mockito.atLeastOnce()).checkReturnCode(eq(weChatPayResponse));
         Mockito.verify(service, Mockito.atLeastOnce()).checkSignature(eq(weChatPayResponse), eq("key"), eq(SignType.MD5));
@@ -315,7 +315,8 @@ class HttpServiceTest {
 
         PluginException e = assertThrows(PluginException.class, () -> service.checkReturnCode(response));
         assertEquals("a message", e.getErrorCode());
-        assertEquals(FailureCause.PAYMENT_PARTNER_ERROR, e.getFailureCause());    }
+        assertEquals(FailureCause.PAYMENT_PARTNER_ERROR, e.getFailureCause());
+    }
 
     @Test
     void checkResultCodeOK() {
@@ -334,7 +335,7 @@ class HttpServiceTest {
 
     @Test
     void checkResultCodeKO() {
-        Mockito.doReturn(FailureCause.SESSION_EXPIRED).when(converter).convert(any());
+        Mockito.doReturn(FailureCause.SESSION_EXPIRED).when(errorConverter).convert(any());
 
         Response response = Response.builder()
                 .appId("appId")
@@ -353,14 +354,14 @@ class HttpServiceTest {
         assertEquals("error code description", e.getErrorCode());
         assertEquals(FailureCause.SESSION_EXPIRED, e.getFailureCause());
 
-        Mockito.verify(converter, Mockito.atLeastOnce()).convert(eq("an error code"));
+        Mockito.verify(errorConverter, Mockito.atLeastOnce()).convert(eq("an error code"));
     }
 
     @Test
     void checkSignatureOK() {
         Map<String, String> map = new HashMap<>();
         map.put("1", "2");
-        Mockito.doReturn(map).when(jsonService).objectToMap(any());
+        Mockito.doReturn(map).when(converter).objectToMap(any());
         Mockito.doReturn(true).when(signatureUtil).isSignatureValid(any(), any(), any());
 
         Response response = Response.builder()
@@ -374,7 +375,7 @@ class HttpServiceTest {
                 .build();
 
         assertDoesNotThrow(() -> service.checkSignature(response, "a key", SignType.MD5));
-        Mockito.verify(jsonService, Mockito.atLeastOnce()).objectToMap(eq(response));
+        Mockito.verify(converter, Mockito.atLeastOnce()).objectToMap(eq(response));
         Mockito.verify(signatureUtil, Mockito.atLeastOnce()).isSignatureValid(eq(map), eq("a key"), eq(SignType.MD5));
     }
 
@@ -382,7 +383,7 @@ class HttpServiceTest {
     void checkSignatureKO() {
         Map<String, String> map = new HashMap<>();
         map.put("1", "2");
-        Mockito.doReturn(map).when(jsonService).objectToMap(any());
+        Mockito.doReturn(map).when(converter).objectToMap(any());
         Mockito.doReturn(false).when(signatureUtil).isSignatureValid(any(), any(), any());
 
 

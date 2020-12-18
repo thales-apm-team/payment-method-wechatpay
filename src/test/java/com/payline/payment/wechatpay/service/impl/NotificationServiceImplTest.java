@@ -8,7 +8,9 @@ import com.payline.payment.wechatpay.bean.response.NotificationMessage;
 import com.payline.payment.wechatpay.bean.response.QueryOrderResponse;
 import com.payline.payment.wechatpay.exception.PluginException;
 import com.payline.payment.wechatpay.service.HttpService;
+import com.payline.payment.wechatpay.util.Converter;
 import com.payline.payment.wechatpay.util.JsonService;
+import com.payline.payment.wechatpay.util.XMLService;
 import com.payline.payment.wechatpay.util.security.SignatureUtil;
 import com.payline.pmapi.bean.common.FailureCause;
 import com.payline.pmapi.bean.notification.request.NotificationRequest;
@@ -40,7 +42,9 @@ class NotificationServiceImplTest {
     NotificationServiceImpl service = new NotificationServiceImpl();
 
     @Mock
-    JsonService jsonService;
+    XMLService xmlService;
+    @Mock
+    Converter converter;
 
     @Mock
     HttpService httpService;
@@ -80,7 +84,7 @@ class NotificationServiceImplTest {
         // create mocks
         Map<String,String> map = new HashMap<>();
         map.put("1","2");
-        Mockito.doReturn(map).when(jsonService).xmlToMap(any());
+        Mockito.doReturn(map).when(xmlService).xmlToMap(any());
 
         Mockito.doReturn(true).when(signatureUtil).isSignatureValid(any(), any(), any());
 
@@ -92,7 +96,7 @@ class NotificationServiceImplTest {
                 .returnCode(Code.SUCCESS)
                 .resultCode(Code.SUCCESS)
                 .build();
-        Mockito.doReturn(notificationMessage).when(jsonService).mapToObject(any(), any());
+        Mockito.doReturn(notificationMessage).when(converter).mapToObject(any(), any());
 
         QueryOrderResponse queryOrderResponse = QueryOrderResponse.builder()
                 .appId("appId")
@@ -124,8 +128,8 @@ class NotificationServiceImplTest {
         assertEquals("SUCCESS", responseSuccess.getStatusCode());
         assertEquals(EmptyTransactionDetails.class, responseSuccess.getTransactionDetails().getClass());
 
-        Mockito.verify(jsonService, Mockito.atLeastOnce()).xmlToMap(eq(message));
-        Mockito.verify(jsonService, Mockito.atLeastOnce()).mapToObject(eq(map), eq(NotificationMessage.class));
+        Mockito.verify(xmlService, Mockito.atLeastOnce()).xmlToMap(eq(message));
+        Mockito.verify(converter, Mockito.atLeastOnce()).mapToObject(eq(map), eq(NotificationMessage.class));
 
         Mockito.verify(signatureUtil).isSignatureValid(eq(map), eq("key"), eq(SignType.MD5));
         Mockito.verify(httpService, Mockito.atLeastOnce()).queryOrder(any(), any()); // todo creer un QueryOrderRequest avec tous les champ du message
@@ -136,7 +140,7 @@ class NotificationServiceImplTest {
         // create mocks
         Map<String,String> map = new HashMap<>();
         map.put("1","2");
-        Mockito.doReturn(map).when(jsonService).xmlToMap(any());
+        Mockito.doReturn(map).when(xmlService).xmlToMap(any());
 
         Mockito.doReturn(true).when(signatureUtil).isSignatureValid(any(), any(), any());
 
@@ -148,7 +152,7 @@ class NotificationServiceImplTest {
                 .returnCode(Code.SUCCESS)
                 .resultCode(Code.SUCCESS)
                 .build();
-        Mockito.doReturn(notificationMessage).when(jsonService).mapToObject(any(), any());
+        Mockito.doReturn(notificationMessage).when(converter).mapToObject(any(), any());
 
         QueryOrderResponse queryOrderResponse = QueryOrderResponse.builder()
                 .appId("appId")
@@ -182,8 +186,8 @@ class NotificationServiceImplTest {
         assertEquals(FailureCause.PARTNER_UNKNOWN_ERROR, paymentResponseFailure.getFailureCause());
         assertEquals(EmptyTransactionDetails.class, paymentResponseFailure.getTransactionDetails().getClass());
 
-        Mockito.verify(jsonService, Mockito.atLeastOnce()).xmlToMap(eq(message));
-        Mockito.verify(jsonService, Mockito.atLeastOnce()).mapToObject(eq(map), eq(NotificationMessage.class));
+        Mockito.verify(xmlService, Mockito.atLeastOnce()).xmlToMap(eq(message));
+        Mockito.verify(converter, Mockito.atLeastOnce()).mapToObject(eq(map), eq(NotificationMessage.class));
 
         Mockito.verify(signatureUtil).isSignatureValid(eq(map), eq("key"), eq(SignType.MD5));
         Mockito.verify(httpService, Mockito.atLeastOnce()).queryOrder(any(), any()); // todo creer un QueryOrderRequest avec tous les champ du message
@@ -195,7 +199,7 @@ class NotificationServiceImplTest {
     @Test
     void parsePluginException() {
         // create mocks
-        Mockito.doThrow(new PluginException("foo", FailureCause.INTERNAL_ERROR)).when(jsonService).xmlToMap(any());
+        Mockito.doThrow(new PluginException("foo", FailureCause.INTERNAL_ERROR)).when(xmlService).xmlToMap(any());
 
         // call method
         NotificationRequest request = MockUtils.aNotificationRequestBuilder()
@@ -219,7 +223,7 @@ class NotificationServiceImplTest {
     @Test
     void parseRuntimeException() {
         // create mocks
-        Mockito.doThrow(new NullPointerException("foo")).when(jsonService).xmlToMap(any());
+        Mockito.doThrow(new NullPointerException("foo")).when(xmlService).xmlToMap(any());
 
         // call method
         NotificationRequest request = MockUtils.aNotificationRequestBuilder()
