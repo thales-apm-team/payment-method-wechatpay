@@ -2,8 +2,8 @@ package com.payline.payment.wechatpay.util.security;
 
 import com.payline.payment.wechatpay.bean.nested.SignType;
 import com.payline.payment.wechatpay.exception.PluginException;
-import com.payline.payment.wechatpay.util.JsonService;
 import com.payline.payment.wechatpay.util.PluginUtils;
+import com.payline.payment.wechatpay.util.XMLService;
 import com.payline.pmapi.bean.common.FailureCause;
 import lombok.extern.log4j.Log4j2;
 import org.apache.commons.codec.binary.Hex;
@@ -26,6 +26,8 @@ public class SignatureUtil {
     private static final String INVALID_PARAMETER = "Invalid parameter";
     private static final String INVALID_ALGORITHM = "Invalid algorithm";
     private static final String INVALID_KEY = "Invalid Key";
+
+    private XMLService xmlService = XMLService.getInstance();
 
     // --- Singleton Holder pattern + initialization BEGIN
     private SignatureUtil(){}
@@ -70,7 +72,7 @@ public class SignatureUtil {
         String sign = generateSignature(data, key, signType);
 
         data.put(FIELD_SIGN, sign);
-        return JsonService.getInstance().mapToXml(data);
+        return xmlService.mapToXml(data);
     }
 
     /**

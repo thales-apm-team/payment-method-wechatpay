@@ -3,49 +3,49 @@ package com.payline.payment.wechatpay.utils.security;
 import com.payline.payment.wechatpay.MockUtils;
 import com.payline.payment.wechatpay.bean.nested.SignType;
 import com.payline.payment.wechatpay.exception.PluginException;
-import com.payline.payment.wechatpay.util.JsonService;
+import com.payline.payment.wechatpay.util.Converter;
 import com.payline.payment.wechatpay.util.security.SignatureUtil;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
-import java.security.InvalidKeyException;
-import java.security.NoSuchAlgorithmException;
+
 import java.util.Map;
 import java.util.stream.Collectors;
+
 import static org.junit.jupiter.api.Assertions.assertThrows;
 
 class SignatureUtilTest {
 
     private SignatureUtil utils = SignatureUtil.getInstance();
-    private JsonService jsonService = JsonService.getInstance();
+    private Converter converter = Converter.getInstance();
 
     @Test
     void isSignatureValid_KO(){
-        Map<String, String> respData = jsonService.objectToMap(MockUtils.aResponseWithoutSign());
+        Map<String, String> respData = converter.objectToMap(MockUtils.aResponseWithoutSign());
         String key = "key";
 
         Assertions.assertFalse(utils.isSignatureValid(respData, key, SignType.HMACSHA256));
     }
     @Test
     void isSignatureValid_NullKey(){
-        Map<String, String> respData = jsonService.objectToMap(MockUtils.aResponseWithoutSign());
+        Map<String, String> respData = converter.objectToMap(MockUtils.aResponseWithoutSign());
         String key = null;
         assertThrows(PluginException.class, () -> utils.isSignatureValid(respData, key, SignType.HMACSHA256));
     }
     @Test
     void isSignatureValid_OK_HMACSHA256(){
-        Map<String, String> respData = jsonService.objectToMap(MockUtils.aHMACSHA256Response());
+        Map<String, String> respData = converter.objectToMap(MockUtils.aHMACSHA256Response());
 
         Assertions.assertTrue(utils.isSignatureValid(respData, "key", SignType.HMACSHA256));
     }
     @Test
     void isSignatureValid_OK_MD5(){
-        Map<String, String> respData = jsonService.objectToMap(MockUtils.aMD5Response());
+        Map<String, String> respData = converter.objectToMap(MockUtils.aMD5Response());
 
         Assertions.assertTrue(utils.isSignatureValid(respData, "key", SignType.MD5));
     }
     @Test
     void generateSignedXml_HMACSHA256(){
-        Map<String, String> data = jsonService.objectToMap(MockUtils.aHMACSHA256Response());
+        Map<String, String> data = converter.objectToMap(MockUtils.aHMACSHA256Response());
         String key = "key";
         SignType signType = SignType.HMACSHA256;
 
@@ -54,7 +54,7 @@ class SignatureUtilTest {
     }
     @Test
     void generateSignedXml_MD5(){
-        Map<String, String> data = jsonService.objectToMap(MockUtils.aMD5Response());
+        Map<String, String> data = converter.objectToMap(MockUtils.aMD5Response());
         String key = "key";
         SignType signType = SignType.MD5;
 
@@ -64,15 +64,15 @@ class SignatureUtilTest {
     }
     @Test
     void generateSignedXml_NullKey(){
-        Map<String, String> data = jsonService.objectToMap(MockUtils.aHMACSHA256Response());
+        Map<String, String> data = converter.objectToMap(MockUtils.aHMACSHA256Response());
         String key = null;
         SignType signType = SignType.HMACSHA256;
 
         assertThrows(PluginException.class, () -> utils.generateSignedXml(data, key, signType));
     }
     @Test
-    void hashWithSha256_KeyKO() throws NoSuchAlgorithmException, InvalidKeyException {
-        Map<String, String> data = jsonService.objectToMap(MockUtils.aHMACSHA256Response());
+    void hashWithSha256_KeyKO() {
+        Map<String, String> data = converter.objectToMap(MockUtils.aHMACSHA256Response());
         String key = "";
 
         StringBuilder sb = new StringBuilder(
