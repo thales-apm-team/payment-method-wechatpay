@@ -53,7 +53,7 @@ public class PaymentWithRedirectionServiceImpl implements PaymentWithRedirection
             QueryOrderResponse response = httpService.queryOrder(configuration, queryOrderRequest);
 
             String partnerTransactionId = response.getTransactionId();
-            BuyerPaymentId buyerPaymentId = new EmptyTransactionDetails();
+            BuyerPaymentId buyerPaymentId = new EmptyTransactionDetails(); // TODO: À vérifier
             TradeState tradeState = response.getTradeState();
             switch (tradeState) {
                 case SUCCESS:

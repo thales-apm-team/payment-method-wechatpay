@@ -1,9 +1,8 @@
 package com.payline.payment.wechatpay.service.impl;
 
-import com.payline.payment.wechatpay.bean.response.Response;
-import com.payline.payment.wechatpay.bean.request.UnifiedOrderRequest;
 import com.payline.payment.wechatpay.bean.configuration.RequestConfiguration;
 import com.payline.payment.wechatpay.bean.nested.SignType;
+import com.payline.payment.wechatpay.bean.request.UnifiedOrderRequest;
 import com.payline.payment.wechatpay.bean.response.UnifiedOrderResponse;
 import com.payline.payment.wechatpay.exception.PluginException;
 import com.payline.payment.wechatpay.service.HttpService;
@@ -56,7 +55,7 @@ public class PaymentServiceImpl implements PaymentService {
 
 
             // return QRCode
-            qrCodeService.generateMatrix(qrCode, 300); // todo 300?
+            qrCodeService.generateMatrix(qrCode, 300); // // TODO: Demander à Monext la taille du QRCode
             paymentResponse = null; // todo ici faire de la magie pour retourner un QRCode
 
 

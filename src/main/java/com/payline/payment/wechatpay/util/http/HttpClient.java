@@ -3,7 +3,6 @@ package com.payline.payment.wechatpay.util.http;
 
 import com.payline.payment.wechatpay.bean.configuration.RequestConfiguration;
 import com.payline.payment.wechatpay.exception.PluginException;
-import com.payline.payment.wechatpay.util.PluginUtils;
 import com.payline.payment.wechatpay.util.constant.ContractConfigurationKeys;
 import com.payline.payment.wechatpay.util.constant.PartnerConfigurationKeys;
 import com.payline.payment.wechatpay.util.properties.ConfigProperties;
