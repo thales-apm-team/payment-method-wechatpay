@@ -1,5 +1,6 @@
 package com.payline.payment.wechatpay.service.impl;
 
+import com.payline.payment.wechatpay.MockUtils;
 import com.payline.payment.wechatpay.bean.nested.Code;
 import com.payline.payment.wechatpay.bean.response.Response;
 import com.payline.payment.wechatpay.exception.InvalidDataException;
@@ -9,7 +10,6 @@ import com.payline.pmapi.bean.configuration.ReleaseInformation;
 import com.payline.pmapi.bean.configuration.parameter.AbstractParameter;
 import com.payline.pmapi.bean.configuration.parameter.impl.ListBoxParameter;
 import com.payline.pmapi.bean.configuration.request.ContractParametersCheckRequest;
-import com.payline.payment.wechatpay.MockUtils;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;

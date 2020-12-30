@@ -17,9 +17,7 @@ import com.payline.pmapi.bean.paymentform.request.PaymentFormLogoRequest;
 import com.payline.pmapi.bean.refund.request.RefundRequest;
 import lombok.experimental.UtilityClass;
 
-import java.io.ByteArrayInputStream;
 import java.math.BigInteger;
-import java.nio.charset.StandardCharsets;
 import java.util.*;
 
 @UtilityClass
@@ -322,7 +320,7 @@ public class MockUtils {
     /**
      * @return a valid user agent.
      */
-    public static String aUserAgent() {
+    public String aUserAgent() {
         return "Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:67.0) Gecko/20100101 Firefox/67.0";
     }
     public TransactionStatusRequest.TransactionStatusRequestBuilder aPaylineTransactionStatusRequestBuilder(){
@@ -345,14 +343,14 @@ public class MockUtils {
     /**
      * Generate a valid {@link PaymentFormConfigurationRequest}.
      */
-    public static PaymentFormConfigurationRequest aPaymentFormConfigurationRequest() {
+    public PaymentFormConfigurationRequest aPaymentFormConfigurationRequest() {
         return aPaymentFormConfigurationRequestBuilder().build();
     }
     /**
      * Generate a builder for a valid {@link PaymentFormConfigurationRequest}.
      * This way, some attributes may be overridden to match specific test needs.
      */
-    public static PaymentFormConfigurationRequest.PaymentFormConfigurationRequestBuilder aPaymentFormConfigurationRequestBuilder() {
+    public PaymentFormConfigurationRequest.PaymentFormConfigurationRequestBuilder aPaymentFormConfigurationRequestBuilder() {
         return PaymentFormConfigurationRequest.PaymentFormConfigurationRequestBuilder.aPaymentFormConfigurationRequest()
                 .withAmount(aPaylineAmount())
                 .withBuyer(aBuyer())

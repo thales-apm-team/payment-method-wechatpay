@@ -1,6 +1,7 @@
 package com.payline.payment.wechatpay.service.impl;
 
 import com.payline.payment.wechatpay.bean.configuration.RequestConfiguration;
+import com.payline.payment.wechatpay.bean.nested.Refund;
 import com.payline.payment.wechatpay.bean.nested.RefundStatus;
 import com.payline.payment.wechatpay.bean.nested.SignType;
 import com.payline.payment.wechatpay.bean.nested.TradeState;
@@ -83,10 +84,16 @@ public class PaymentWithRedirectionServiceImpl implements PaymentWithRedirection
                 .refundId(refundId)
                 .build();
 
+        // get refund status
         QueryRefundResponse queryRefundResponse = httpService.queryRefund(configuration, queryRefundRequest);
+        Refund refund = queryRefundResponse.getRefunds().stream()
+                .filter(r -> r.getRefundId().equals(refundId))
+                .findFirst()
+                .get();
+
         // create RefundResponse from refund status
         BuyerPaymentId buyerPaymentId = new EmptyTransactionDetails();
-        RefundStatus refundStatus = queryRefundResponse.getRefundStatus();
+        RefundStatus refundStatus = refund.getRefundStatus();
         switch (refundStatus) {
             case SUCCESS:
                 paymentResponse = PaymentResponseSuccess.PaymentResponseSuccessBuilder
@@ -117,7 +124,7 @@ public class PaymentWithRedirectionServiceImpl implements PaymentWithRedirection
                         .aPaymentResponseFailure()
                         .withPartnerTransactionId(refundId)
                         .withErrorCode(refundStatus.name())
-                        .withFailureCause(FailureCause.INVALID_DATA)        // todo MàJ doc
+                        .withFailureCause(FailureCause.INVALID_DATA)
                         .build();
         }
 
@@ -153,20 +160,23 @@ public class PaymentWithRedirectionServiceImpl implements PaymentWithRedirection
                         .build();
                 break;
             case NOTPAY:
+            case CLOSED:
+            case REVOKED:
                 paymentResponse = PaymentResponseFailure.PaymentResponseFailureBuilder
                         .aPaymentResponseFailure()
                         .withPartnerTransactionId(partnerTransactionId)
                         .withErrorCode(response.getErrorCode())
-                        .withFailureCause(FailureCause.PAYMENT_PARTNER_ERROR)
+                        .withFailureCause(FailureCause.CANCEL)
                         .withTransactionDetails(buyerPaymentId)
                         .build();
                 break;
+
             default:
                 paymentResponse = PaymentResponseFailure.PaymentResponseFailureBuilder
                         .aPaymentResponseFailure()
                         .withPartnerTransactionId(partnerTransactionId)
                         .withErrorCode(response.getErrorCode())
-                        .withFailureCause(FailureCause.INVALID_DATA) // todo ca ou un autre mais a definir
+                        .withFailureCause(FailureCause.INVALID_DATA)
                         .withTransactionDetails(buyerPaymentId)
                         .build();
         }

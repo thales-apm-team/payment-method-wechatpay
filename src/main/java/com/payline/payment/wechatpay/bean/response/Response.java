@@ -3,6 +3,7 @@ package com.payline.payment.wechatpay.bean.response;
 import com.google.gson.annotations.SerializedName;
 import com.payline.payment.wechatpay.bean.WeChatPayBean;
 import com.payline.payment.wechatpay.bean.nested.Code;
+import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.NonNull;
 import lombok.ToString;
@@ -10,24 +11,24 @@ import lombok.experimental.SuperBuilder;
 
 @SuperBuilder
 @Getter
+@EqualsAndHashCode(callSuper = true)
 @ToString
 public class Response extends WeChatPayBean {
 
     @SerializedName("return_code")
     @NonNull
-    private final Code returnCode;
+    Code returnCode;
 
     @SerializedName("return_msg")
-    private final String returnMessage;
+    String returnMessage;
 
     @SerializedName("result_code")
-    @NonNull
-    private final Code resultCode;
+    Code resultCode;
 
     // error fields
-    @SerializedName("error_code")
-    private final String errorCode;
+    @SerializedName("err_code")
+    String errorCode;
 
-    @SerializedName("error_code_des")
-    private final String errorCodeDescription;
+    @SerializedName("err_code_des")
+    String errorCodeDescription;
 }

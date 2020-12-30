@@ -141,7 +141,7 @@ public class HttpService {
 
             // does the call
             StringResponse response = client.post(uri, headers, body);
-            QueryRefundResponse queryRefundResponse = converter.xmlToObject(response.getContent(), QueryRefundResponse.class);
+            QueryRefundResponse queryRefundResponse = converter.createQueryResponse(response.getContent());
 
             // check response
             checkResponse(queryRefundResponse, key, request.getSignType());

@@ -2,10 +2,7 @@ package com.payline.payment.wechatpay.service.impl;
 
 import com.payline.payment.wechatpay.MockUtils;
 import com.payline.payment.wechatpay.bean.configuration.RequestConfiguration;
-import com.payline.payment.wechatpay.bean.nested.Code;
-import com.payline.payment.wechatpay.bean.nested.RefundStatus;
-import com.payline.payment.wechatpay.bean.nested.SignType;
-import com.payline.payment.wechatpay.bean.nested.TradeState;
+import com.payline.payment.wechatpay.bean.nested.*;
 import com.payline.payment.wechatpay.bean.response.QueryOrderResponse;
 import com.payline.payment.wechatpay.bean.response.QueryRefundResponse;
 import com.payline.payment.wechatpay.exception.PluginException;
@@ -21,6 +18,10 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.*;
 
+import java.util.ArrayList;
+import java.util.List;
+
+import static com.payline.payment.wechatpay.MockUtils.TRANSACTION_ID;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.mockito.ArgumentMatchers.any;
 
@@ -163,7 +164,7 @@ class PaymentWithRedirectionServiceImplTest {
         Assertions.assertEquals(PaymentResponseFailure.class, response.getClass());
         Assertions.assertEquals(queryOrderResponse.getTransactionId(), ((PaymentResponseFailure) response).getPartnerTransactionId());
         Assertions.assertEquals(queryOrderResponse.getErrorCode(), ((PaymentResponseFailure) response).getErrorCode());
-        Assertions.assertEquals(FailureCause.PAYMENT_PARTNER_ERROR, ((PaymentResponseFailure) response).getFailureCause());
+        Assertions.assertEquals(FailureCause.CANCEL, ((PaymentResponseFailure) response).getFailureCause());
     }
 
     @Test
@@ -197,6 +198,9 @@ class PaymentWithRedirectionServiceImplTest {
 
     @Test
     void getRefundStatus_SUCCESS(){
+        List<Refund> refunds = new ArrayList<>();
+        refunds.add(Refund.builder().refundId(TRANSACTION_ID).refundStatus(RefundStatus.SUCCESS).build());
+
         QueryRefundResponse queryRefundResponse = QueryRefundResponse.builder()
                 .appId("appId")
                 .merchantId("mchId")
@@ -204,8 +208,7 @@ class PaymentWithRedirectionServiceImplTest {
                 .nonceStr("123")
                 .returnCode(Code.SUCCESS)
                 .resultCode(Code.SUCCESS)
-                .refundStatus(RefundStatus.SUCCESS)
-                .refundId("123456")
+                .refunds(refunds)
                 .build();
 
         Mockito.doReturn(queryRefundResponse).when(httpService).queryRefund(any(), any());
@@ -213,12 +216,15 @@ class PaymentWithRedirectionServiceImplTest {
         PaymentResponse response = service.getRefundStatus(transactionStatusRequest, configuration);
 
         Assertions.assertEquals(PaymentResponseSuccess.class, response.getClass());
-        Assertions.assertEquals(MockUtils.TRANSACTION_ID, ((PaymentResponseSuccess) response).getPartnerTransactionId());
+        Assertions.assertEquals(TRANSACTION_ID, ((PaymentResponseSuccess) response).getPartnerTransactionId());
         Assertions.assertEquals("SUCCESS", ((PaymentResponseSuccess) response).getStatusCode());
     }
 
     @Test
     void getRefundStatus_PROCESSING(){
+        List<Refund> refunds = new ArrayList<>();
+        refunds.add(Refund.builder().refundId(TRANSACTION_ID).refundStatus(RefundStatus.PROCESSING).build());
+
         QueryRefundResponse queryRefundResponse = QueryRefundResponse.builder()
                 .appId("appId")
                 .merchantId("mchId")
@@ -226,8 +232,7 @@ class PaymentWithRedirectionServiceImplTest {
                 .nonceStr("123")
                 .returnCode(Code.SUCCESS)
                 .resultCode(Code.SUCCESS)
-                .refundStatus(RefundStatus.PROCESSING)
-                .refundId("123456")
+                .refunds(refunds)
                 .build();
 
         Mockito.doReturn(queryRefundResponse).when(httpService).queryRefund(any(), any());
@@ -235,12 +240,15 @@ class PaymentWithRedirectionServiceImplTest {
         PaymentResponse response = service.getRefundStatus(transactionStatusRequest, configuration);
 
         Assertions.assertEquals(PaymentResponseSuccess.class, response.getClass());
-        Assertions.assertEquals(MockUtils.TRANSACTION_ID, ((PaymentResponseSuccess) response).getPartnerTransactionId());
+        Assertions.assertEquals(TRANSACTION_ID, ((PaymentResponseSuccess) response).getPartnerTransactionId());
         Assertions.assertEquals("PENDING", ((PaymentResponseSuccess) response).getStatusCode());
     }
 
     @Test
     void getRefundStatus_REFUNDCLOSE(){
+        List<Refund> refunds = new ArrayList<>();
+        refunds.add(Refund.builder().refundId(TRANSACTION_ID).refundStatus(RefundStatus.REFUNDCLOSE).build());
+
         QueryRefundResponse queryRefundResponse = QueryRefundResponse.builder()
                 .appId("appId")
                 .merchantId("mchId")
@@ -248,8 +256,7 @@ class PaymentWithRedirectionServiceImplTest {
                 .nonceStr("123")
                 .returnCode(Code.SUCCESS)
                 .resultCode(Code.SUCCESS)
-                .refundStatus(RefundStatus.REFUNDCLOSE)
-                .refundId("123456")
+                .refunds(refunds)
                 .build();
 
         Mockito.doReturn(queryRefundResponse).when(httpService).queryRefund(any(), any());
@@ -257,7 +264,7 @@ class PaymentWithRedirectionServiceImplTest {
         PaymentResponse response = service.getRefundStatus(transactionStatusRequest, configuration);
 
         Assertions.assertEquals(PaymentResponseFailure.class, response.getClass());
-        Assertions.assertEquals(MockUtils.TRANSACTION_ID, ((PaymentResponseFailure) response).getPartnerTransactionId());
+        Assertions.assertEquals(TRANSACTION_ID, ((PaymentResponseFailure) response).getPartnerTransactionId());
         Assertions.assertEquals("REFUNDCLOSE", ((PaymentResponseFailure) response).getErrorCode());
         Assertions.assertEquals(FailureCause.REFUSED, ((PaymentResponseFailure) response).getFailureCause());
     }

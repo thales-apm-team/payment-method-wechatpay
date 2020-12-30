@@ -1,6 +1,7 @@
 package com.payline.payment.wechatpay.service.impl;
 
 import com.payline.payment.wechatpay.bean.configuration.RequestConfiguration;
+import com.payline.payment.wechatpay.bean.nested.Refund;
 import com.payline.payment.wechatpay.bean.nested.RefundStatus;
 import com.payline.payment.wechatpay.bean.nested.SignType;
 import com.payline.payment.wechatpay.bean.request.QueryRefundRequest;
@@ -66,7 +67,13 @@ public class RefundServiceImpl implements RefundService {
             QueryRefundResponse queryRefundResponse = httpService.queryRefund(configuration, queryRefundRequest);
 
             // create RefundResponse from refund status
-            RefundStatus refundStatus = queryRefundResponse.getRefundStatus();
+            Refund refund = queryRefundResponse.getRefunds()
+                    .stream()
+                    .filter(r -> submitRefundResponse.getRefundId().equals( r.getRefundId()))
+                    .findAny()
+                    .get();
+
+            RefundStatus refundStatus = refund.getRefundStatus();
             switch (refundStatus) {
                 case SUCCESS:
                     response = RefundResponseSuccess.RefundResponseSuccessBuilder
@@ -95,7 +102,7 @@ public class RefundServiceImpl implements RefundService {
                             .aRefundResponseFailure()
                             .withPartnerTransactionId(refundId)
                             .withErrorCode(refundStatus.name())
-                            .withFailureCause(FailureCause.INVALID_DATA)        // todo MàJ doc
+                            .withFailureCause(FailureCause.INVALID_DATA)
                             .build();
             }
 

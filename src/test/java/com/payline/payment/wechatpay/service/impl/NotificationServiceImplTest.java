@@ -9,7 +9,6 @@ import com.payline.payment.wechatpay.bean.response.QueryOrderResponse;
 import com.payline.payment.wechatpay.exception.PluginException;
 import com.payline.payment.wechatpay.service.HttpService;
 import com.payline.payment.wechatpay.util.Converter;
-import com.payline.payment.wechatpay.util.JsonService;
 import com.payline.payment.wechatpay.util.XMLService;
 import com.payline.payment.wechatpay.util.security.SignatureUtil;
 import com.payline.pmapi.bean.common.FailureCause;
@@ -132,7 +131,7 @@ class NotificationServiceImplTest {
         Mockito.verify(converter, Mockito.atLeastOnce()).mapToObject(eq(map), eq(NotificationMessage.class));
 
         Mockito.verify(signatureUtil).isSignatureValid(eq(map), eq("key"), eq(SignType.MD5));
-        Mockito.verify(httpService, Mockito.atLeastOnce()).queryOrder(any(), any()); // todo creer un QueryOrderRequest avec tous les champ du message
+        Mockito.verify(httpService, Mockito.atLeastOnce()).queryOrder(any(), any());
     }
 
     @Test
@@ -190,11 +189,81 @@ class NotificationServiceImplTest {
         Mockito.verify(converter, Mockito.atLeastOnce()).mapToObject(eq(map), eq(NotificationMessage.class));
 
         Mockito.verify(signatureUtil).isSignatureValid(eq(map), eq("key"), eq(SignType.MD5));
-        Mockito.verify(httpService, Mockito.atLeastOnce()).queryOrder(any(), any()); // todo creer un QueryOrderRequest avec tous les champ du message
+        Mockito.verify(httpService, Mockito.atLeastOnce()).queryOrder(any(), any());
     }
 
-    // todo test les autre tradeStatus
     // todo tester avec signature invalide
+    @Test
+    void parseInvalidSignature() {
+        // create mocks
+        Map<String,String> map = new HashMap<>();
+        map.put("1","2");
+        Mockito.doReturn(map).when(xmlService).xmlToMap(any());
+
+        Mockito.doReturn(true).when(signatureUtil).isSignatureValid(any(), any(), any());
+
+        NotificationMessage notificationMessage = NotificationMessage.builder()
+                .appId("appId")
+                .merchantId("mchId")
+                .subMerchantId("subMchId")
+                .nonceStr("123")
+                .returnCode(Code.SUCCESS)
+                .resultCode(Code.SUCCESS)
+                .build();
+        Mockito.doReturn(notificationMessage).when(converter).mapToObject(any(), any());
+
+        QueryOrderResponse queryOrderResponse = QueryOrderResponse.builder()
+                .appId("appId")
+                .merchantId("mchId")
+                .subMerchantId("subMchId")
+                .nonceStr("123")
+                .returnCode(Code.SUCCESS)
+                .resultCode(Code.SUCCESS)
+                .tradeState(TradeState.SUCCESS)
+                .transactionId("123456")
+                .build();
+        Mockito.doReturn(queryOrderResponse).when(httpService).queryOrder(any(), any());
+
+        // call method
+        NotificationRequest request = MockUtils.aNotificationRequestBuilder()
+                .withContent(new ByteArrayInputStream(message.getBytes(StandardCharsets.UTF_8)))
+                .build();
+        NotificationResponse response = service.parse(request);
+
+        // assertions
+        assertNotNull(response);
+        assertEquals(PaymentResponseByNotificationResponse.class, response.getClass());
+        PaymentResponseByNotificationResponse paymentResponseByNotificationResponse = (PaymentResponseByNotificationResponse) response;
+        PaymentResponse paymentResponse = paymentResponseByNotificationResponse.getPaymentResponse();
+
+        assertEquals(PaymentResponseSuccess.class, paymentResponse.getClass());
+        PaymentResponseSuccess responseSuccess = (PaymentResponseSuccess) paymentResponse;
+        assertEquals("123456", responseSuccess.getPartnerTransactionId());
+        assertEquals("SUCCESS", responseSuccess.getStatusCode());
+        assertEquals(EmptyTransactionDetails.class, responseSuccess.getTransactionDetails().getClass());
+
+        Mockito.verify(xmlService, Mockito.atLeastOnce()).xmlToMap(eq(message));
+        Mockito.verify(converter, Mockito.atLeastOnce()).mapToObject(eq(map), eq(NotificationMessage.class));
+
+        Mockito.verify(signatureUtil).isSignatureValid(eq(map), eq("key"), eq(SignType.MD5));
+        Mockito.verify(httpService, Mockito.atLeastOnce()).queryOrder(any(), any());
+    }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
     @Test
     void parsePluginException() {

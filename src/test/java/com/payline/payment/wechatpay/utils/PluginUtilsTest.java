@@ -1,8 +1,8 @@
 package com.payline.payment.wechatpay.utils;
 
+import com.payline.payment.wechatpay.MockUtils;
 import com.payline.payment.wechatpay.util.PluginUtils;
 import com.payline.pmapi.bean.common.Amount;
-import com.payline.payment.wechatpay.MockUtils;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 

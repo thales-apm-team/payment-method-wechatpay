@@ -2,6 +2,7 @@ package com.payline.payment.wechatpay.service.impl;
 
 import com.payline.payment.wechatpay.MockUtils;
 import com.payline.payment.wechatpay.bean.nested.Code;
+import com.payline.payment.wechatpay.bean.nested.Refund;
 import com.payline.payment.wechatpay.bean.nested.RefundStatus;
 import com.payline.payment.wechatpay.bean.response.QueryRefundResponse;
 import com.payline.payment.wechatpay.bean.response.SubmitRefundResponse;
@@ -18,6 +19,9 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.Mockito;
 import org.mockito.MockitoAnnotations;
+
+import java.util.ArrayList;
+import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.any;
@@ -50,6 +54,9 @@ class RefundServiceImplTest {
                 .build();
         Mockito.doReturn(submitRefundResponse).when(httpService).submitRefund(any(), any());
 
+        List<Refund> refunds = new ArrayList<>();
+        refunds.add(Refund.builder().refundId(refundId).refundStatus(RefundStatus.SUCCESS).build());
+
         QueryRefundResponse queryRefundResponse = QueryRefundResponse.builder()
                 .appId("appId")
                 .merchantId("mchId")
@@ -57,7 +64,7 @@ class RefundServiceImplTest {
                 .nonceStr("123")
                 .returnCode(Code.SUCCESS)
                 .resultCode(Code.SUCCESS)
-                .refundStatus(RefundStatus.SUCCESS)
+                .refunds(refunds)
                 .build();
         Mockito.doReturn(queryRefundResponse).when(httpService).queryRefund(any(), any());
 
@@ -88,6 +95,9 @@ class RefundServiceImplTest {
                 .build();
         Mockito.doReturn(submitRefundResponse).when(httpService).submitRefund(any(), any());
 
+        List<Refund> refunds = new ArrayList<>();
+        refunds.add(Refund.builder().refundId(refundId).refundStatus(RefundStatus.PROCESSING).build());
+
         QueryRefundResponse queryRefundResponse = QueryRefundResponse.builder()
                 .appId("appId")
                 .merchantId("mchId")
@@ -95,7 +105,7 @@ class RefundServiceImplTest {
                 .nonceStr("123")
                 .returnCode(Code.SUCCESS)
                 .resultCode(Code.SUCCESS)
-                .refundStatus(RefundStatus.PROCESSING)
+                .refunds(refunds)
                 .build();
         Mockito.doReturn(queryRefundResponse).when(httpService).queryRefund(any(), any());
 
@@ -126,6 +136,9 @@ class RefundServiceImplTest {
                 .build();
         Mockito.doReturn(submitRefundResponse).when(httpService).submitRefund(any(), any());
 
+        List<Refund> refunds = new ArrayList<>();
+        refunds.add(Refund.builder().refundId(refundId).refundStatus(RefundStatus.REFUNDCLOSE).build());
+
         QueryRefundResponse queryRefundResponse = QueryRefundResponse.builder()
                 .appId("appId")
                 .merchantId("mchId")
@@ -133,7 +146,7 @@ class RefundServiceImplTest {
                 .nonceStr("123")
                 .returnCode(Code.SUCCESS)
                 .resultCode(Code.SUCCESS)
-                .refundStatus(RefundStatus.REFUNDCLOSE)
+                .refunds(refunds)
                 .build();
         Mockito.doReturn(queryRefundResponse).when(httpService).queryRefund(any(), any());
 
@@ -165,6 +178,9 @@ class RefundServiceImplTest {
                 .build();
         Mockito.doReturn(submitRefundResponse).when(httpService).submitRefund(any(), any());
 
+        List<Refund> refunds = new ArrayList<>();
+        refunds.add(Refund.builder().refundId(refundId).refundStatus(RefundStatus.CHANGE).build());
+
         QueryRefundResponse queryRefundResponse = QueryRefundResponse.builder()
                 .appId("appId")
                 .merchantId("mchId")
@@ -172,7 +188,7 @@ class RefundServiceImplTest {
                 .nonceStr("123")
                 .returnCode(Code.SUCCESS)
                 .resultCode(Code.SUCCESS)
-                .refundStatus(RefundStatus.CHANGE)
+                .refunds(refunds)
                 .build();
         Mockito.doReturn(queryRefundResponse).when(httpService).queryRefund(any(), any());
 

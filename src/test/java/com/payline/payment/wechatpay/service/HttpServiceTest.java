@@ -215,7 +215,7 @@ class HttpServiceTest {
                 .returnCode(Code.SUCCESS)
                 .resultCode(Code.SUCCESS)
                 .build();
-        Mockito.doReturn(queryRefundResponse).when(converter).xmlToObject(any(), any());
+        Mockito.doReturn(queryRefundResponse).when(converter).createQueryResponse(any());
 
         Mockito.doNothing().when(service).checkResponse(any(), any(), any());
 
@@ -232,7 +232,7 @@ class HttpServiceTest {
         // Assertions
         Mockito.verify(converter, Mockito.atLeastOnce()).objectToMap(eq(request));
         Mockito.verify(signatureUtil, Mockito.atLeastOnce()).generateSignedXml(eq(map), eq("key"), any());
-        Mockito.verify(converter, Mockito.atLeastOnce()).xmlToObject(eq("a content"), eq(QueryRefundResponse.class));
+        Mockito.verify(converter, Mockito.atLeastOnce()).createQueryResponse(eq("a content"));
         Mockito.verify(client, Mockito.atLeastOnce()).post(any(), any(), eq("thisIsASignedXMLMessage"));
         Mockito.verify(service, Mockito.atLeastOnce()).checkResponse(eq(queryRefundResponse), eq("key"), eq(SignType.MD5));
 

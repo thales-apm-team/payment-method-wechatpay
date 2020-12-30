@@ -2,6 +2,7 @@ package com.payline.payment.wechatpay.bean.request;
 
 import com.google.gson.annotations.SerializedName;
 import com.payline.payment.wechatpay.bean.WeChatPayBean;
+import com.payline.payment.wechatpay.bean.nested.TradeType;
 import lombok.EqualsAndHashCode;
 import lombok.Value;
 import lombok.experimental.SuperBuilder;
@@ -31,7 +32,7 @@ public class UnifiedOrderRequest extends WeChatPayBean {
     String notifyUrl;
 
     @SerializedName("trade_type")
-    String tradeType;
+    TradeType tradeType;
 
     @SerializedName("product_id") String productId;
 }

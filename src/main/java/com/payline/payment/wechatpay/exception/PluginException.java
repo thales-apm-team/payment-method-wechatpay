@@ -3,9 +3,7 @@ package com.payline.payment.wechatpay.exception;
 import com.payline.payment.wechatpay.util.PluginUtils;
 import com.payline.pmapi.bean.common.FailureCause;
 import com.payline.pmapi.bean.payment.response.impl.PaymentResponseFailure;
-import com.payline.pmapi.bean.paymentform.response.configuration.impl.PaymentFormConfigurationResponseFailure;
 import com.payline.pmapi.bean.refund.response.impl.RefundResponseFailure;
-import com.payline.pmapi.bean.reset.response.impl.ResetResponseFailure;
 
 /**
  * Generic exception which can be converted into the various ResponseFailure objects from the PM-API.

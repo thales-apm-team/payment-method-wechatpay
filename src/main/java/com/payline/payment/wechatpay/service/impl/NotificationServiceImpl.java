@@ -19,7 +19,6 @@ import com.payline.pmapi.bean.common.FailureCause;
 import com.payline.pmapi.bean.common.TransactionCorrelationId;
 import com.payline.pmapi.bean.notification.request.NotificationRequest;
 import com.payline.pmapi.bean.notification.response.NotificationResponse;
-import com.payline.pmapi.bean.notification.response.impl.IgnoreNotificationResponse;
 import com.payline.pmapi.bean.notification.response.impl.PaymentResponseByNotificationResponse;
 import com.payline.pmapi.bean.payment.request.NotifyTransactionStatusRequest;
 import com.payline.pmapi.bean.payment.response.PaymentResponse;
@@ -86,26 +85,21 @@ public class NotificationServiceImpl implements NotificationService {
             partnerTransactionId = queryOrderResponse.getTransactionId();
             BuyerPaymentId buyerPaymentId = new EmptyTransactionDetails();
 
-            switch (tradeState) {
-                case SUCCESS:
-                    paymentResponse = PaymentResponseSuccess.PaymentResponseSuccessBuilder
-                            .aPaymentResponseSuccess()
-                            .withPartnerTransactionId(partnerTransactionId)
-                            .withStatusCode(tradeState.name())
-                            .withTransactionDetails(buyerPaymentId)
-                            .build();
-                    break;
-                case NOTPAY:
-                    paymentResponse = PaymentResponseFailure.PaymentResponseFailureBuilder
-                            .aPaymentResponseFailure()
-                            .withPartnerTransactionId(partnerTransactionId)
-                            .withErrorCode(queryOrderResponse.getErrorCode())
-                            .withFailureCause(FailureCause.PARTNER_UNKNOWN_ERROR) // todo c'est quoi qui va la?
-                            .withTransactionDetails(buyerPaymentId)
-                            .build();
-                    break;
-                default:
-                    return new IgnoreNotificationResponse();    // todo
+            if (tradeState == TradeState.SUCCESS) {
+                paymentResponse = PaymentResponseSuccess.PaymentResponseSuccessBuilder
+                        .aPaymentResponseSuccess()
+                        .withPartnerTransactionId(partnerTransactionId)
+                        .withStatusCode(tradeState.name())
+                        .withTransactionDetails(buyerPaymentId)
+                        .build();
+            } else {
+                paymentResponse = PaymentResponseFailure.PaymentResponseFailureBuilder
+                        .aPaymentResponseFailure()
+                        .withPartnerTransactionId(partnerTransactionId)
+                        .withErrorCode(queryOrderResponse.getErrorCode())
+                        .withFailureCause(FailureCause.PARTNER_UNKNOWN_ERROR)
+                        .withTransactionDetails(buyerPaymentId)
+                        .build();
             }
 
         } catch (PluginException e) {
@@ -124,7 +118,7 @@ public class NotificationServiceImpl implements NotificationService {
                     .build();
         }
 
-        String httpBody = "<xml><return_code><![CDATA[SUCCESS]]></return_code><return_msg><![CDATA[OK]]></return_msg></xml>";   // todo on laisse ca en dur ou on bidouille?
+        String httpBody = "<xml><return_code><![CDATA[SUCCESS]]></return_code><return_msg><![CDATA[OK]]></return_msg></xml>";
         TransactionCorrelationId correlationId = TransactionCorrelationId.TransactionCorrelationIdBuilder
                 .aCorrelationIdBuilder()
                 .withType(TransactionCorrelationId.CorrelationIdType.PARTNER_TRANSACTION_ID)
