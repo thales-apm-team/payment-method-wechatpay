@@ -183,7 +183,7 @@ public class MockUtils {
                 .appId("appId")
                 .merchantId("merchantId")
                 .nonceStr("nonceStr")
-                .sign("4B8EA9A692F8D34306CD8E767302B8C1BCD3B8953094A93E0118305A32857945")
+                .sign("5DEDF78925C3EAA0A1585F8D8B6F05EF539D2F884BB6B3E5C87E72FC7469CEB2")
                 .signType(SignType.HMACSHA256)
                 .subAppId("subAppId")
                 .subMerchantId("subMerchantId")
@@ -199,7 +199,7 @@ public class MockUtils {
                 .appId("appId")
                 .merchantId("merchantId")
                 .nonceStr("nonceStr")
-                .sign("289ABA3E667AF1A1DE8120E6E6D9A4F7")
+                .sign("C4C4063BA822FC13EA0778CC700849A8")
                 .signType(SignType.MD5)
                 .subAppId("subAppId")
                 .subMerchantId("subMerchantId")
@@ -211,15 +211,15 @@ public class MockUtils {
                 "    <return_code>SUCCESS</return_code>\n" +
                 "    <return_msg>returnMessage</return_msg>\n" +
                 "    <result_code>SUCCESS</result_code>\n" +
-                "    <error_code>errorCode</error_code>\n" +
-                "    <error_code_des>errorCodeDescription</error_code_des>\n" +
+                "    <err_code>errorCode</err_code>\n" +
+                "    <err_code_des>errorCodeDescription</err_code_des>\n" +
                 "    <appid>appId</appid>\n" +
                 "    <mch_id>merchantId</mch_id>\n" +
                 "    <sub_appid>subAppId</sub_appid>\n" +
                 "    <sub_mch_id>subMerchantId</sub_mch_id>\n" +
                 "    <nonce_str>nonceStr</nonce_str>\n" +
                 "    <sign_type>HMACSHA256</sign_type>\n" +
-                "    <sign>4B8EA9A692F8D34306CD8E767302B8C1BCD3B8953094A93E0118305A32857945</sign>\n" +
+                "    <sign>5DEDF78925C3EAA0A1585F8D8B6F05EF539D2F884BB6B3E5C87E72FC7469CEB2</sign>\n" +
                 "</xml>\n";
     }
     public String aMD5SignedXml(){
@@ -228,15 +228,15 @@ public class MockUtils {
                 "    <return_code>SUCCESS</return_code>\n" +
                 "    <return_msg>returnMessage</return_msg>\n" +
                 "    <result_code>SUCCESS</result_code>\n" +
-                "    <error_code>errorCode</error_code>\n" +
-                "    <error_code_des>errorCodeDescription</error_code_des>\n" +
+                "    <err_code>errorCode</err_code>\n" +
+                "    <err_code_des>errorCodeDescription</err_code_des>\n" +
                 "    <appid>appId</appid>\n" +
                 "    <mch_id>merchantId</mch_id>\n" +
                 "    <sub_appid>subAppId</sub_appid>\n" +
                 "    <sub_mch_id>subMerchantId</sub_mch_id>\n" +
                 "    <nonce_str>nonceStr</nonce_str>\n" +
                 "    <sign_type>MD5</sign_type>\n" +
-                "    <sign>289ABA3E667AF1A1DE8120E6E6D9A4F7</sign>\n" +
+                "    <sign>C4C4063BA822FC13EA0778CC700849A8</sign>\n" +
                 "</xml>\n";
     }
 
@@ -272,7 +272,7 @@ public class MockUtils {
     /**
      * Generate a valid {@link PaymentRequest}.
      */
-    public static PaymentRequest aPaylinePaymentRequest() {
+    public PaymentRequest aPaylinePaymentRequest() {
         return aPaylinePaymentRequestBuilder().build();
     }
 
@@ -280,7 +280,7 @@ public class MockUtils {
      * Generate a builder for a valid {@link PaymentRequest}.
      * This way, some attributes may be overridden to match specific test needs.
      */
-    public static PaymentRequest.Builder aPaylinePaymentRequestBuilder() {
+    public PaymentRequest.Builder aPaylinePaymentRequestBuilder() {
         long randomTransactionId = (long) (Math.random() * 100000000000000L);
         return PaymentRequest.builder()
                 .withAmount(aPaylineAmount())
@@ -299,7 +299,7 @@ public class MockUtils {
     /**
      * Generate a valid {@link Browser}.
      */
-    public static Browser aBrowser() {
+    public Browser aBrowser() {
         return Browser.BrowserBuilder.aBrowser()
                 .withLocale(Locale.getDefault())
                 .withIp("192.168.0.1")
@@ -309,7 +309,7 @@ public class MockUtils {
     /**
      * Generate a valid {@link PaymentFormContext}.
      */
-    public static PaymentFormContext aPaymentFormContext() {
+    public PaymentFormContext aPaymentFormContext() {
         Map<String, String> paymentFormParameter = new HashMap<>();
 
         return PaymentFormContext.PaymentFormContextBuilder.aPaymentFormContext()

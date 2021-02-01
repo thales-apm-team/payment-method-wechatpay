@@ -21,7 +21,7 @@ import org.mockito.*;
 import java.util.ArrayList;
 import java.util.List;
 
-import static com.payline.payment.wechatpay.MockUtils.TRANSACTION_ID;
+import static com.payline.payment.wechatpay.MockUtils.*;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.mockito.ArgumentMatchers.any;
 
