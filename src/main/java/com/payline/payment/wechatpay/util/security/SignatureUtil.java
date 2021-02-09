@@ -48,7 +48,7 @@ public class SignatureUtil {
      * @param signType MAC algorithm
      * @return True if the signature is valid
      */
-    public boolean isSignatureValid(Map<String, String> data, String key, SignType signType) {
+    public boolean isSignatureValid(Map<String, String> data, String key, String signType) {
         if(PluginUtils.isEmpty(key)){
             log.error(INVALID_PARAMETER);
             throw new PluginException(INVALID_PARAMETER, FailureCause.INVALID_DATA);
@@ -68,7 +68,7 @@ public class SignatureUtil {
      * @param key  API key
      * @return XML with sign field
      */
-    public String generateSignedXml(final Map<String, String> data, String key, SignType signType) {
+    public String generateSignedXml(final Map<String, String> data, String key, String signType) {
         String sign = generateSignature(data, key, signType);
 
         data.put(FIELD_SIGN, sign);
@@ -82,7 +82,7 @@ public class SignatureUtil {
      * @param key  API key
      * @return signature
      */
-    public String generateSignature(final Map<String, String> data, String key, SignType signType) {
+    public String generateSignature(final Map<String, String> data, String key, String signType) {
 
         if(PluginUtils.isEmpty(key)){
             log.error(INVALID_PARAMETER);
@@ -99,13 +99,12 @@ public class SignatureUtil {
         );
         sb.append("&key=").append(key);                           // add key to the end of created String
 
-        if (signType.equals(SignType.MD5)) {
+        if (signType.equals(SignType.MD5.getType())) {
             return hashWithMD5(sb.toString());
         } else {
             return hashWithSha256(sb.toString(), key);
         }
     }
-
     /**
      * Generate a hash with the HmacSHA256 algorithm and the provided API key
      * @param data Data to hashed

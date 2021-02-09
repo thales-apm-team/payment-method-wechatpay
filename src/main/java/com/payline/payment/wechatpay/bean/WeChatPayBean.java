@@ -1,7 +1,6 @@
 package com.payline.payment.wechatpay.bean;
 
 import com.google.gson.annotations.SerializedName;
-import com.payline.payment.wechatpay.bean.nested.SignType;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.NonNull;
@@ -28,7 +27,7 @@ public abstract class WeChatPayBean {
     @SerializedName("sub_mch_id")
     String subMerchantId;
 
-    @SerializedName("device_info")
+    @SerializedName("device_id")
     String deviceId;
 
     @NonNull
@@ -36,7 +35,7 @@ public abstract class WeChatPayBean {
     String nonceStr;
 
     @SerializedName("sign_type")
-    SignType signType;
+    String signType;
 
     String sign;
 }

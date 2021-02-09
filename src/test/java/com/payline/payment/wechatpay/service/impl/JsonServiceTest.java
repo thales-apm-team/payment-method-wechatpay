@@ -18,7 +18,7 @@ class JsonServiceTest {
             "\"sub_appid\":\"subAppIdTest\"," +
             "\"sub_mch_id\":\"subMerchantIdTest\"," +
             "\"nonce_str\":\"aaaaaaa\"," +
-            "\"sign_type\":\"" + SignType.HMACSHA256 + "\"," +
+            "\"sign_type\":\"" + SignType.HMACSHA256.getType() + "\"," +
             "\"sign\":\"azerty\"" +
             "}";
 
@@ -28,7 +28,7 @@ class JsonServiceTest {
             .appId("00000")
             .merchantId("merchantIdTest")
             .nonceStr("aaaaaaa")
-            .signType(SignType.HMACSHA256)
+            .signType(SignType.HMACSHA256.getType())
             .sign("azerty")
             .subAppId("subAppIdTest")
             .subMerchantId("subMerchantIdTest")

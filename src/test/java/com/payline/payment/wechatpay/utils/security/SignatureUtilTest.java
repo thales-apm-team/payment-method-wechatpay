@@ -23,25 +23,26 @@ class SignatureUtilTest {
         Map<String, String> respData = converter.objectToMap(MockUtils.aResponseWithoutSign());
         String key = "key";
 
-        Assertions.assertFalse(utils.isSignatureValid(respData, key, SignType.HMACSHA256));
+        Assertions.assertFalse(utils.isSignatureValid(respData, key, SignType.HMACSHA256.getType()));
     }
     @Test
     void isSignatureValid_NullKey(){
         Map<String, String> respData = converter.objectToMap(MockUtils.aResponseWithoutSign());
         String key = null;
-        assertThrows(PluginException.class, () -> utils.isSignatureValid(respData, key, SignType.HMACSHA256));
+        String signType = SignType.HMACSHA256.getType();
+        assertThrows(PluginException.class, () -> utils.isSignatureValid(respData, key,signType));
     }
     @Test
     void isSignatureValid_OK_HMACSHA256(){
         Map<String, String> respData = converter.objectToMap(MockUtils.aHMACSHA256Response());
 
-        Assertions.assertTrue(utils.isSignatureValid(respData, "key", SignType.HMACSHA256));
+        Assertions.assertTrue(utils.isSignatureValid(respData, "key", SignType.HMACSHA256.getType()));
     }
     @Test
     void isSignatureValid_OK_MD5(){
         Map<String, String> respData = converter.objectToMap(MockUtils.aMD5Response());
 
-        Assertions.assertTrue(utils.isSignatureValid(respData, "key", SignType.MD5));
+        Assertions.assertTrue(utils.isSignatureValid(respData, "key", SignType.MD5.getType()));
     }
     @Test
     void generateSignedXml_HMACSHA256(){
@@ -49,7 +50,7 @@ class SignatureUtilTest {
         String key = "key";
         SignType signType = SignType.HMACSHA256;
 
-        String signedXml = utils.generateSignedXml(data, key, signType);
+        String signedXml = utils.generateSignedXml(data, key, signType.getType());
         Assertions.assertEquals(MockUtils.aHMACSHA256SignedXml(), signedXml);
     }
     @Test
@@ -58,7 +59,7 @@ class SignatureUtilTest {
         String key = "key";
         SignType signType = SignType.MD5;
 
-        String signedXml = utils.generateSignedXml(data, key, signType);
+        String signedXml = utils.generateSignedXml(data, key, signType.getType());
 
         Assertions.assertEquals(MockUtils.aMD5SignedXml(), signedXml);
     }
@@ -66,7 +67,7 @@ class SignatureUtilTest {
     void generateSignedXml_NullKey(){
         Map<String, String> data = converter.objectToMap(MockUtils.aHMACSHA256Response());
         String key = null;
-        SignType signType = SignType.HMACSHA256;
+        String signType = SignType.HMACSHA256.getType();
 
         assertThrows(PluginException.class, () -> utils.generateSignedXml(data, key, signType));
     }

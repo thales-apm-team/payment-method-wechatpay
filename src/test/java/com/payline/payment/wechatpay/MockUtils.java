@@ -168,7 +168,7 @@ public class MockUtils {
                 .appId("appId")
                 .merchantId("merchantId")
                 .nonceStr("nonceStr")
-                .signType(SignType.HMACSHA256)
+                .signType(SignType.HMACSHA256.getType())
                 .subAppId("subAppId")
                 .subMerchantId("subMerchantId")
                 .build();
@@ -183,8 +183,8 @@ public class MockUtils {
                 .appId("appId")
                 .merchantId("merchantId")
                 .nonceStr("nonceStr")
-                .sign("5DEDF78925C3EAA0A1585F8D8B6F05EF539D2F884BB6B3E5C87E72FC7469CEB2")
-                .signType(SignType.HMACSHA256)
+                .sign("413437B51D1A196D92B015946FF20B3D77D48A81A55559CAE9AE029B54F61CAB")
+                .signType(SignType.HMACSHA256.getType())
                 .subAppId("subAppId")
                 .subMerchantId("subMerchantId")
                 .build();
@@ -200,7 +200,7 @@ public class MockUtils {
                 .merchantId("merchantId")
                 .nonceStr("nonceStr")
                 .sign("C4C4063BA822FC13EA0778CC700849A8")
-                .signType(SignType.MD5)
+                .signType(SignType.MD5.getType())
                 .subAppId("subAppId")
                 .subMerchantId("subMerchantId")
                 .build();
@@ -218,8 +218,8 @@ public class MockUtils {
                 "    <sub_appid>subAppId</sub_appid>\n" +
                 "    <sub_mch_id>subMerchantId</sub_mch_id>\n" +
                 "    <nonce_str>nonceStr</nonce_str>\n" +
-                "    <sign_type>HMACSHA256</sign_type>\n" +
-                "    <sign>5DEDF78925C3EAA0A1585F8D8B6F05EF539D2F884BB6B3E5C87E72FC7469CEB2</sign>\n" +
+                "    <sign_type>HMAC-SHA256</sign_type>\n" +
+                "    <sign>413437B51D1A196D92B015946FF20B3D77D48A81A55559CAE9AE029B54F61CAB</sign>\n" +
                 "</xml>\n";
     }
     public String aMD5SignedXml(){
@@ -238,6 +238,35 @@ public class MockUtils {
                 "    <sign_type>MD5</sign_type>\n" +
                 "    <sign>C4C4063BA822FC13EA0778CC700849A8</sign>\n" +
                 "</xml>\n";
+    }
+    public String aQueryRefundResponseXml(){
+        return "<xml>\n" +
+                "<appid><![CDATA[wxa5b511bc130a4d9e]]></appid>\n" +
+                "<cash_fee><![CDATA[7]]></cash_fee>\n" +
+                "<cash_fee_type><![CDATA[CNY]]></cash_fee_type>\n" +
+                "<fee_type><![CDATA[EUR]]></fee_type>\n" +
+                "<mch_id><![CDATA[110605603]]></mch_id>\n" +
+                "<nonce_str><![CDATA[KFObVRM5NQqrrnLn]]></nonce_str>\n" +
+                "<out_refund_no_0><![CDATA[00002]]></out_refund_no_0>\n" +
+                "<out_trade_no><![CDATA[PAYLINE00000002]]></out_trade_no>\n" +
+                "<rate><![CDATA[776703200]]></rate>\n" +
+                "<refund_account_0><![CDATA[REFUND_SOURCE_UNSETTLED_FUNDS]]></refund_account_0>\n" +
+                "<refund_channel_0><![CDATA[ORIGINAL]]></refund_channel_0>\n" +
+                "<refund_count>1</refund_count>\n" +
+                "<refund_fee>1</refund_fee>\n" +
+                "<refund_fee_0>1</refund_fee_0>\n" +
+                "<refund_id_0><![CDATA[50201107072021020506055269794]]></refund_id_0>\n" +
+                "<refund_recv_accout_0><![CDATA[支付用户的零钱]]></refund_recv_accout_0>\n" +
+                "<refund_status_0><![CDATA[SUCCESS]]></refund_status_0>\n" +
+                "<refund_success_time_0><![CDATA[2021-02-05 21:13:02]]></refund_success_time_0>\n" +
+                "<result_code><![CDATA[SUCCESS]]></result_code>\n" +
+                "<return_code><![CDATA[SUCCESS]]></return_code>\n" +
+                "<return_msg><![CDATA[OK]]></return_msg>\n" +
+                "<sign><![CDATA[DA9BEA8B2F523C8D2EB344E243D2CC56]]></sign>\n" +
+                "<sub_mch_id><![CDATA[345923236]]></sub_mch_id>\n" +
+                "<total_fee><![CDATA[1]]></total_fee>\n" +
+                "<transaction_id><![CDATA[4200000941202102052952064679]]></transaction_id>\n" +
+                "</xml>";
     }
 
 

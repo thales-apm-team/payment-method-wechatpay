@@ -41,7 +41,7 @@ public class RefundServiceImpl implements RefundService {
                     .subAppId(configuration.getPartnerConfiguration().getProperty(PartnerConfigurationKeys.SUB_APPID))
                     .subMerchantId(configuration.getContractConfiguration().getProperty(ContractConfigurationKeys.SUB_MERCHANT_ID).getValue())
                     .nonceStr(PluginUtils.generateRandomString(32))
-                    .signType(SignType.valueOf(configuration.getPartnerConfiguration().getProperty(PartnerConfigurationKeys.SIGN_TYPE)))
+                    .signType(SignType.valueOf(configuration.getPartnerConfiguration().getProperty(PartnerConfigurationKeys.SIGN_TYPE)).getType())
 
                     .transactionId(refundRequest.getPartnerTransactionId())
                     .outTradeNo(refundRequest.getTransactionId())
@@ -60,18 +60,17 @@ public class RefundServiceImpl implements RefundService {
                     .subAppId(configuration.getPartnerConfiguration().getProperty(PartnerConfigurationKeys.SUB_APPID))
                     .subMerchantId(configuration.getContractConfiguration().getProperty(ContractConfigurationKeys.SUB_MERCHANT_ID).getValue())
                     .nonceStr(PluginUtils.generateRandomString(32))
-                    .signType(SignType.valueOf(configuration.getPartnerConfiguration().getProperty(PartnerConfigurationKeys.SIGN_TYPE)))
+                    .signType(SignType.valueOf(configuration.getPartnerConfiguration().getProperty(PartnerConfigurationKeys.SIGN_TYPE)).getType())
                     .refundId(refundId)
                     .build();
 
             QueryRefundResponse queryRefundResponse = httpService.queryRefund(configuration, queryRefundRequest);
 
             // create RefundResponse from refund status
-            Refund refund = queryRefundResponse.getRefunds()
-                    .stream()
-                    .filter(r -> submitRefundResponse.getRefundId().equals( r.getRefundId()))
+            Refund refund = queryRefundResponse.getRefunds().stream()
+                    .filter(r -> submitRefundResponse.getRefundId().equals(r.getRefundId()))
                     .findAny()
-                    .get();
+                    .orElse(Refund.builder().refundStatus(RefundStatus.EMPTY).build());
 
             RefundStatus refundStatus = refund.getRefundStatus();
             switch (refundStatus) {

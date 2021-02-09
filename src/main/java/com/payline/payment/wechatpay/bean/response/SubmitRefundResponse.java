@@ -30,7 +30,7 @@ public class SubmitRefundResponse extends Response{
     @SerializedName("refund_fee_type")
     String refundFeeType;
 
-    @SerializedName("refund_fee")
+    @SerializedName("total_fee")
     String totalFee;
 
     @SerializedName("fee_type")

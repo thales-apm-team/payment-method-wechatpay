@@ -74,7 +74,7 @@ public class ConfigurationServiceImpl implements ConfigurationService {
                         .subAppId(configuration.getPartnerConfiguration().getProperty(PartnerConfigurationKeys.SUB_APPID))
                         .subMerchantId(configuration.getContractConfiguration().getProperty(ContractConfigurationKeys.SUB_MERCHANT_ID).getValue())
                         .nonceStr(PluginUtils.generateRandomString(32))
-                        .signType(SignType.valueOf(configuration.getPartnerConfiguration().getProperty(PartnerConfigurationKeys.SIGN_TYPE)))
+                        .signType(SignType.valueOf(configuration.getPartnerConfiguration().getProperty(PartnerConfigurationKeys.SIGN_TYPE)).getType())
                         .billDate(PluginUtils.createDate())
                         .billType("ALL")
                         .build();

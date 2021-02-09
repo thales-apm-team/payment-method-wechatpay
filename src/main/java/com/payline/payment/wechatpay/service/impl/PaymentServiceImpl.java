@@ -47,18 +47,17 @@ public class PaymentServiceImpl implements PaymentService {
                     .subAppId(configuration.getPartnerConfiguration().getProperty(PartnerConfigurationKeys.SUB_APPID))
                     .subMerchantId(configuration.getContractConfiguration().getProperty(ContractConfigurationKeys.SUB_MERCHANT_ID).getValue())
                     .nonceStr(PluginUtils.generateRandomString(32))
-                    .signType(SignType.valueOf( configuration.getPartnerConfiguration().getProperty(PartnerConfigurationKeys.SIGN_TYPE)))
+                    .signType(SignType.valueOf( configuration.getPartnerConfiguration().getProperty(PartnerConfigurationKeys.SIGN_TYPE)).getType())
                     .build();
 
             // call WeChatPay API
             UnifiedOrderResponse unifiedOrderResponse = httpService.unifiedOrder(configuration, request);
             String qrCode = unifiedOrderResponse.getCodeUrl();
 
-
             // return QRCode
             qrCodeService.generateMatrix(qrCode, 300); // // TODO: Demander à Monext la taille du QRCode
             paymentResponse = null; // todo ici faire de la magie pour retourner un QRCode
-
+            
         }catch (PluginException e){
             log.info("a PluginException occurred", e);
             paymentResponse = e.toPaymentResponseFailureBuilder().build();

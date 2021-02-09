@@ -12,4 +12,10 @@ import lombok.experimental.SuperBuilder;
 public class QueryRefundRequest extends WeChatPayBean {
     @SerializedName("refund_id")
     String refundId;
+
+    @SerializedName("transaction_id")
+    String transactionId;
+
+    @SerializedName("out_trade_no")
+    String outTradeNo;
 }

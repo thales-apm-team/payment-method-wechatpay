@@ -36,8 +36,9 @@ public class QueryRefundResponse extends Response{
     String cashFeeType;
 
     @SerializedName("refund_count")
-    int refundCount;
+    String refundCount;
 
+    @SerializedName("refunds")
     List<Refund> refunds;
 
     @SerializedName("refund_channel")

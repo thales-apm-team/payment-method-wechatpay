@@ -26,9 +26,7 @@ import org.apache.http.impl.conn.BasicHttpClientConnectionManager;
 import javax.net.ssl.HttpsURLConnection;
 import javax.net.ssl.KeyManagerFactory;
 import javax.net.ssl.SSLContext;
-import java.io.ByteArrayInputStream;
-import java.io.IOException;
-import java.io.InputStream;
+import java.io.*;
 import java.net.URI;
 import java.nio.charset.StandardCharsets;
 import java.security.*;
@@ -101,7 +99,7 @@ public class HttpClient {
      *
      * @param tokenEndpointUrl the full URL of the endpoint that delivers access tokens
      */
-    protected void init(RequestConfiguration configuration) {
+    public void init(RequestConfiguration configuration) {
         if (this.initialized.compareAndSet(false, true)) {
             // Set the token endpoint URL
 
@@ -128,11 +126,12 @@ public class HttpClient {
                     .setSocketTimeout(socketTimeout * 1000)
                     .build();
 
-            try {
-                char[] password = configuration.getContractConfiguration()
-                        .getProperty(ContractConfigurationKeys.MERCHANT_ID).getValue().toCharArray();
-                InputStream certStream = new ByteArrayInputStream(configuration.getPartnerConfiguration()
-                        .getProperty(PartnerConfigurationKeys.CERTIFICATE).getBytes(StandardCharsets.UTF_8));
+
+            char[] password = configuration.getContractConfiguration()
+                    .getProperty(ContractConfigurationKeys.MERCHANT_ID).getValue().toCharArray();
+
+            File file = new File(configuration.getPartnerConfiguration().getProperty(PartnerConfigurationKeys.CERTIFICATE));
+            try(InputStream certStream = new FileInputStream(file)){
                 KeyStore ks = KeyStore.getInstance("PKCS12");
                 ks.load(certStream, password);
 
@@ -158,7 +157,6 @@ public class HttpClient {
                         null,
                         null
                 );
-
 
                 // Instantiate Apache HTTP client
                 this.client = HttpClientBuilder.create()

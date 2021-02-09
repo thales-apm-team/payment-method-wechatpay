@@ -26,6 +26,8 @@ import com.payline.pmapi.bean.payment.response.impl.PaymentResponseSuccess;
 import com.payline.pmapi.service.PaymentWithRedirectionService;
 import lombok.extern.log4j.Log4j2;
 
+import java.sql.Ref;
+
 @Log4j2
 public class PaymentWithRedirectionServiceImpl implements PaymentWithRedirectionService {
     HttpService httpService = HttpService.getInstance();
@@ -80,20 +82,22 @@ public class PaymentWithRedirectionServiceImpl implements PaymentWithRedirection
                 .subAppId(configuration.getPartnerConfiguration().getProperty(PartnerConfigurationKeys.SUB_APPID))
                 .subMerchantId(configuration.getContractConfiguration().getProperty(ContractConfigurationKeys.SUB_MERCHANT_ID).getValue())
                 .nonceStr(PluginUtils.generateRandomString(32))
-                .signType(SignType.valueOf(configuration.getPartnerConfiguration().getProperty(PartnerConfigurationKeys.SIGN_TYPE)))
+                .signType(SignType.valueOf(configuration.getPartnerConfiguration().getProperty(PartnerConfigurationKeys.SIGN_TYPE)).getType())
                 .refundId(refundId)
                 .build();
 
         // get refund status
         QueryRefundResponse queryRefundResponse = httpService.queryRefund(configuration, queryRefundRequest);
+        BuyerPaymentId buyerPaymentId = new EmptyTransactionDetails();
+
         Refund refund = queryRefundResponse.getRefunds().stream()
                 .filter(r -> r.getRefundId().equals(refundId))
                 .findFirst()
-                .get();
+                .orElse(Refund.builder().refundStatus(RefundStatus.EMPTY).build());
 
         // create RefundResponse from refund status
-        BuyerPaymentId buyerPaymentId = new EmptyTransactionDetails();
         RefundStatus refundStatus = refund.getRefundStatus();
+
         switch (refundStatus) {
             case SUCCESS:
                 paymentResponse = PaymentResponseSuccess.PaymentResponseSuccessBuilder
@@ -142,7 +146,7 @@ public class PaymentWithRedirectionServiceImpl implements PaymentWithRedirection
                 .deviceInfo(configuration.getPartnerConfiguration().getProperty(PartnerConfigurationKeys.DEVICE_INFO))
                 .transactionId(request.getTransactionId())
                 .nonceStr(PluginUtils.generateRandomString(32))
-                .signType(SignType.valueOf(configuration.getPartnerConfiguration().getProperty(PartnerConfigurationKeys.SIGN_TYPE)))
+                .signType(SignType.valueOf(configuration.getPartnerConfiguration().getProperty(PartnerConfigurationKeys.SIGN_TYPE)).getType())
                 .build();
 
         QueryOrderResponse response = httpService.queryOrder(configuration, queryOrderRequest);

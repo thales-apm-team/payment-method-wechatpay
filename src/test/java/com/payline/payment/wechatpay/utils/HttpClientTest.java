@@ -1,5 +1,7 @@
 package com.payline.payment.wechatpay.utils;
 
+import com.payline.payment.wechatpay.MockUtils;
+import com.payline.payment.wechatpay.bean.configuration.RequestConfiguration;
 import com.payline.payment.wechatpay.exception.PluginException;
 import com.payline.payment.wechatpay.util.http.HttpClient;
 import com.payline.payment.wechatpay.util.http.StringResponse;
@@ -81,7 +83,6 @@ class HttpClientTest {
         assertThrows(PluginException.class, () -> httpClient.execute(request));
     }
     /**------------------------------------------------------------------------------------------------------------------*/
-
     @Test
     void execute_invalidResponse() throws IOException {
         // given: a request that gets an invalid response (null)
@@ -92,5 +93,4 @@ class HttpClientTest {
         assertThrows(PluginException.class, () -> httpClient.execute(request));
     }
     /**------------------------------------------------------------------------------------------------------------------*/
-
 }

@@ -18,6 +18,7 @@ import org.apache.http.Header;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.*;
+import org.openqa.selenium.remote.http.HttpRequest;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -77,13 +78,14 @@ class HttpServiceTest {
                 .merchantId("merchantId")
                 .subMerchantId("subMerchantId")
                 .nonceStr("123456")
-                .signType(SignType.MD5)
+                .signType(SignType.MD5.getType())
                 .returnCode(Code.SUCCESS)
                 .resultCode(Code.SUCCESS)
                 .build();
-        Mockito.doReturn(unifiedOrderResponse).when(converter).xmlToObject(any(), any());
+            Mockito.doReturn(unifiedOrderResponse).when(converter).xmlToObject(any(), any());
 
-        Mockito.doNothing().when(service).checkResponse(any(), any(), any());
+        Mockito.doNothing().when(service).checkSignature(any(), any(), any());
+        Mockito.doNothing().when(service).checkResponse(any());
 
         // call method
         UnifiedOrderRequest request = UnifiedOrderRequest.builder()
@@ -91,7 +93,7 @@ class HttpServiceTest {
                 .merchantId("merchantId")
                 .subMerchantId("subMerchantId")
                 .nonceStr("123456")
-                .signType(SignType.MD5)
+                .signType(SignType.MD5.getType())
                 .build();
         UnifiedOrderResponse response = service.unifiedOrder(configuration, request);
 
@@ -100,7 +102,8 @@ class HttpServiceTest {
         Mockito.verify(signatureUtil, Mockito.atLeastOnce()).generateSignedXml(eq(map), eq("key"), any());
         Mockito.verify(converter, Mockito.atLeastOnce()).xmlToObject(eq("a content"), eq(UnifiedOrderResponse.class));
         Mockito.verify(client, Mockito.atLeastOnce()).post(any(), any(), eq("thisIsASignedXMLMessage"));
-        Mockito.verify(service, Mockito.atLeastOnce()).checkResponse(eq(unifiedOrderResponse), eq("key"), eq(SignType.MD5));
+        Mockito.verify(service, Mockito.atLeastOnce()).checkSignature(any(), eq("key"), eq(SignType.MD5.getType()));
+        Mockito.verify(service, Mockito.atLeastOnce()).checkResponse(eq(unifiedOrderResponse));
 
         assertEquals(unifiedOrderResponse, response);
     }
@@ -121,14 +124,15 @@ class HttpServiceTest {
                 .merchantId("merchantId")
                 .subMerchantId("subMerchantId")
                 .nonceStr("123456")
-                .signType(SignType.MD5)
+                .signType(SignType.MD5.getType())
                 .returnCode(Code.SUCCESS)
                 .resultCode(Code.SUCCESS)
                 .tradeState(TradeState.SUCCESS)
                 .build();
         Mockito.doReturn(queryOrderResponse).when(converter).xmlToObject(any(), any());
 
-        Mockito.doNothing().when(service).checkResponse(any(), any(), any());
+        Mockito.doNothing().when(service).checkSignature(any(), any(), any());
+        Mockito.doNothing().when(service).checkResponse(any());
 
         // call method
         QueryOrderRequest request = QueryOrderRequest.builder()
@@ -136,7 +140,7 @@ class HttpServiceTest {
                 .merchantId("merchantId")
                 .subMerchantId("subMerchantId")
                 .nonceStr("123456")
-                .signType(SignType.MD5)
+                .signType(SignType.MD5.getType())
                 .build();
         QueryOrderResponse response = service.queryOrder(configuration, request);
 
@@ -145,7 +149,8 @@ class HttpServiceTest {
         Mockito.verify(signatureUtil, Mockito.atLeastOnce()).generateSignedXml(eq(map), eq("key"), any());
         Mockito.verify(converter, Mockito.atLeastOnce()).xmlToObject(eq("a content"), eq(QueryOrderResponse.class));
         Mockito.verify(client, Mockito.atLeastOnce()).post(any(), any(), eq("thisIsASignedXMLMessage"));
-        Mockito.verify(service, Mockito.atLeastOnce()).checkResponse(eq(queryOrderResponse), eq("key"), eq(SignType.MD5));
+        Mockito.verify(service, Mockito.atLeastOnce()).checkSignature(any(), eq("key"), eq(SignType.MD5.getType()));
+        Mockito.verify(service, Mockito.atLeastOnce()).checkResponse(eq(queryOrderResponse));
 
         assertEquals(queryOrderResponse, response);
     }
@@ -166,13 +171,14 @@ class HttpServiceTest {
                 .merchantId("merchantId")
                 .subMerchantId("subMerchantId")
                 .nonceStr("123456")
-                .signType(SignType.MD5)
+                .signType(SignType.MD5.getType())
                 .returnCode(Code.SUCCESS)
                 .resultCode(Code.SUCCESS)
                 .build();
         Mockito.doReturn(submitRefundResponse).when(converter).xmlToObject(any(), any());
 
-        Mockito.doNothing().when(service).checkResponse(any(), any(), any());
+        Mockito.doNothing().when(service).checkSignature(any(), any(), any());
+        Mockito.doNothing().when(service).checkResponse(any());
 
         // call method
         SubmitRefundRequest request = SubmitRefundRequest.builder()
@@ -180,7 +186,7 @@ class HttpServiceTest {
                 .merchantId("merchantId")
                 .subMerchantId("subMerchantId")
                 .nonceStr("123456")
-                .signType(SignType.MD5)
+                .signType(SignType.MD5.getType())
                 .transactionId("123")
                 .build();
         SubmitRefundResponse response = service.submitRefund(configuration, request);
@@ -190,7 +196,8 @@ class HttpServiceTest {
         Mockito.verify(signatureUtil, Mockito.atLeastOnce()).generateSignedXml(eq(map), eq("key"), any());
         Mockito.verify(converter, Mockito.atLeastOnce()).xmlToObject(eq("a content"), eq(SubmitRefundResponse.class));
         Mockito.verify(client, Mockito.atLeastOnce()).post(any(), any(), eq("thisIsASignedXMLMessage"));
-        Mockito.verify(service, Mockito.atLeastOnce()).checkResponse(eq(submitRefundResponse), eq("key"), eq(SignType.MD5));
+        Mockito.verify(service, Mockito.atLeastOnce()).checkSignature(any(), eq("key"), eq(SignType.MD5.getType()));
+        Mockito.verify(service, Mockito.atLeastOnce()).checkResponse(eq(submitRefundResponse));
 
         assertEquals(submitRefundResponse, response);
     }
@@ -211,13 +218,14 @@ class HttpServiceTest {
                 .merchantId("merchantId")
                 .subMerchantId("subMerchantId")
                 .nonceStr("123456")
-                .signType(SignType.MD5)
+                .signType(SignType.MD5.getType())
                 .returnCode(Code.SUCCESS)
                 .resultCode(Code.SUCCESS)
                 .build();
         Mockito.doReturn(queryRefundResponse).when(converter).createQueryResponse(any());
 
-        Mockito.doNothing().when(service).checkResponse(any(), any(), any());
+        Mockito.doNothing().when(service).checkSignature(any(), any(), any());
+        Mockito.doNothing().when(service).checkResponse(any());
 
         // call method
         QueryRefundRequest request = QueryRefundRequest.builder()
@@ -225,7 +233,7 @@ class HttpServiceTest {
                 .merchantId("merchantId")
                 .subMerchantId("subMerchantId")
                 .nonceStr("123456")
-                .signType(SignType.MD5)
+                .signType(SignType.MD5.getType())
                 .build();
         QueryRefundResponse response = service.queryRefund(configuration, request);
 
@@ -234,7 +242,8 @@ class HttpServiceTest {
         Mockito.verify(signatureUtil, Mockito.atLeastOnce()).generateSignedXml(eq(map), eq("key"), any());
         Mockito.verify(converter, Mockito.atLeastOnce()).createQueryResponse(eq("a content"));
         Mockito.verify(client, Mockito.atLeastOnce()).post(any(), any(), eq("thisIsASignedXMLMessage"));
-        Mockito.verify(service, Mockito.atLeastOnce()).checkResponse(eq(queryRefundResponse), eq("key"), eq(SignType.MD5));
+        Mockito.verify(service, Mockito.atLeastOnce()).checkSignature(any(), eq("key"), eq(SignType.MD5.getType()));
+        Mockito.verify(service, Mockito.atLeastOnce()).checkResponse(eq(queryRefundResponse));
 
         assertEquals(queryRefundResponse, response);
     }
@@ -255,7 +264,7 @@ class HttpServiceTest {
                 .merchantId("merchantId")
                 .subMerchantId("subMerchantId")
                 .nonceStr("123456")
-                .signType(SignType.MD5)
+                .signType(SignType.MD5.getType())
                 .returnCode(Code.SUCCESS)
                 .resultCode(Code.SUCCESS)
                 .build();
@@ -270,7 +279,7 @@ class HttpServiceTest {
                 .merchantId("merchantId")
                 .subMerchantId("subMerchantId")
                 .nonceStr("123456")
-                .signType(SignType.MD5)
+                .signType(SignType.MD5.getType())
                 .build();
         Response response = service.downloadTransactionHistory(configuration, request);
 
@@ -280,7 +289,7 @@ class HttpServiceTest {
         Mockito.verify(converter, Mockito.atLeastOnce()).xmlToObject(eq("a content"), eq(Response.class));
         Mockito.verify(client, Mockito.atLeastOnce()).post(any(), any(), eq("thisIsASignedXMLMessage"));
         Mockito.verify(service, Mockito.atLeastOnce()).checkReturnCode(eq(weChatPayResponse));
-        Mockito.verify(service, Mockito.atLeastOnce()).checkSignature(eq(weChatPayResponse), eq("key"), eq(SignType.MD5));
+        Mockito.verify(service, Mockito.atLeastOnce()).checkSignature(any(), eq("key"), eq(SignType.MD5.getType()));
 
         assertEquals(weChatPayResponse, response);
     }
@@ -292,7 +301,7 @@ class HttpServiceTest {
                 .merchantId("merchantId")
                 .subMerchantId("subMerchantId")
                 .nonceStr("123456")
-                .signType(SignType.MD5)
+                .signType(SignType.MD5.getType())
                 .returnCode(Code.SUCCESS)
                 .resultCode(Code.SUCCESS)
                 .build();
@@ -307,7 +316,7 @@ class HttpServiceTest {
                 .merchantId("merchantId")
                 .subMerchantId("subMerchantId")
                 .nonceStr("123456")
-                .signType(SignType.MD5)
+                .signType(SignType.MD5.getType())
                 .returnCode(Code.FAIL)
                 .resultCode(Code.SUCCESS)
                 .returnMessage("a message")
@@ -325,7 +334,7 @@ class HttpServiceTest {
                 .merchantId("merchantId")
                 .subMerchantId("subMerchantId")
                 .nonceStr("123456")
-                .signType(SignType.MD5)
+                .signType(SignType.MD5.getType())
                 .returnCode(Code.SUCCESS)
                 .resultCode(Code.SUCCESS)
                 .build();
@@ -342,7 +351,7 @@ class HttpServiceTest {
                 .merchantId("merchantId")
                 .subMerchantId("subMerchantId")
                 .nonceStr("123456")
-                .signType(SignType.MD5)
+                .signType(SignType.MD5.getType())
                 .returnCode(Code.SUCCESS)
                 .returnMessage("return message")
                 .resultCode(Code.FAIL)
@@ -369,14 +378,15 @@ class HttpServiceTest {
                 .merchantId("merchantId")
                 .subMerchantId("subMerchantId")
                 .nonceStr("123456")
-                .signType(SignType.MD5)
+                .signType(SignType.MD5.getType())
                 .returnCode(Code.SUCCESS)
                 .resultCode(Code.SUCCESS)
                 .build();
 
-        assertDoesNotThrow(() -> service.checkSignature(response, "a key", SignType.MD5));
+
+        assertDoesNotThrow(() -> service.checkSignature(converter.objectToMap(response), "a key", SignType.MD5.getType()));
         Mockito.verify(converter, Mockito.atLeastOnce()).objectToMap(eq(response));
-        Mockito.verify(signatureUtil, Mockito.atLeastOnce()).isSignatureValid(eq(map), eq("a key"), eq(SignType.MD5));
+        Mockito.verify(signatureUtil, Mockito.atLeastOnce()).isSignatureValid(eq(map), eq("a key"), eq(SignType.MD5.getType()));
     }
 
     @Test
@@ -392,12 +402,12 @@ class HttpServiceTest {
                 .merchantId("merchantId")
                 .subMerchantId("subMerchantId")
                 .nonceStr("123456")
-                .signType(SignType.MD5)
+                .signType(SignType.MD5.getType())
                 .returnCode(Code.SUCCESS)
                 .resultCode(Code.SUCCESS)
                 .build();
-
-        PluginException e = assertThrows(PluginException.class, () -> service.checkSignature(response, "a key", SignType.MD5));
+        String signType = SignType.MD5.getType();
+        PluginException e = assertThrows(PluginException.class, () -> service.checkSignature(map, "a key", signType));
 
         assertEquals("Invalid signature", e.getErrorCode());
         assertEquals(FailureCause.INVALID_DATA, e.getFailureCause());

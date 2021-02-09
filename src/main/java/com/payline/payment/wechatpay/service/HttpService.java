@@ -2,7 +2,6 @@ package com.payline.payment.wechatpay.service;
 
 import com.payline.payment.wechatpay.bean.configuration.RequestConfiguration;
 import com.payline.payment.wechatpay.bean.nested.Code;
-import com.payline.payment.wechatpay.bean.nested.SignType;
 import com.payline.payment.wechatpay.bean.request.*;
 import com.payline.payment.wechatpay.bean.response.*;
 import com.payline.payment.wechatpay.exception.InvalidDataException;
@@ -14,6 +13,8 @@ import com.payline.payment.wechatpay.util.http.HttpClient;
 import com.payline.payment.wechatpay.util.http.StringResponse;
 import com.payline.payment.wechatpay.util.security.SignatureUtil;
 import com.payline.pmapi.bean.common.FailureCause;
+import lombok.AccessLevel;
+import lombok.NoArgsConstructor;
 import lombok.extern.log4j.Log4j2;
 import org.apache.http.Header;
 import org.apache.http.message.BasicHeader;
@@ -23,6 +24,8 @@ import java.net.URISyntaxException;
 import java.util.Map;
 
 @Log4j2
+@NoArgsConstructor(access = AccessLevel.PRIVATE)
+
 public class HttpService {
     private static final String INVALID_URL_MESSAGE = "invalid URL";
     private static final String INVALID_URL_LOG_MESSAGE = "invalid URL for property: {}";
@@ -31,15 +34,13 @@ public class HttpService {
     private SignatureUtil signatureUtil = SignatureUtil.getInstance();
     private ErrorConverter errorConverter = ErrorConverter.getInstance();
 
-    private HttpService() {
-    }
-
     public static HttpService getInstance() {
         return Holder.instance;
     }
 
     protected Header[] initHeaders() {
-        return new Header[]{
+
+         return new Header[]{
                 new BasicHeader("Content-Type", "text/xml")
         };
     }
@@ -62,8 +63,10 @@ public class HttpService {
             StringResponse response = client.post(uri, headers, body);
             UnifiedOrderResponse unifiedOrderResponse = converter.xmlToObject(response.getContent(), UnifiedOrderResponse.class);
 
+            // check signature
+            checkSignature(converter.xmlToMap(response.getContent()),key,request.getSignType());
             // check response
-            checkResponse(unifiedOrderResponse, key, request.getSignType());
+            checkResponse(unifiedOrderResponse);
 
             return unifiedOrderResponse;
         } catch (URISyntaxException e) {
@@ -82,6 +85,8 @@ public class HttpService {
                     .getProperty(PartnerConfigurationKeys.QUERY_ORDER_URL)
             );
             Header[] headers = initHeaders();
+
+
             Map<String, String> map = converter.objectToMap(request);
             String body = signatureUtil.generateSignedXml(map, key, request.getSignType());
 
@@ -89,8 +94,10 @@ public class HttpService {
             StringResponse response = client.post(uri, headers, body);
             QueryOrderResponse queryOrderResponse = converter.xmlToObject(response.getContent(), QueryOrderResponse.class);
 
+            // check signature
+            checkSignature(converter.xmlToMap(response.getContent()),key,request.getSignType());
             // check response
-            checkResponse(queryOrderResponse, key, request.getSignType());
+            checkResponse(queryOrderResponse);
 
             return queryOrderResponse;
         } catch (URISyntaxException e) {
@@ -104,6 +111,8 @@ public class HttpService {
             // get needed data
             String key = configuration.getPartnerConfiguration().getProperty(PartnerConfigurationKeys.KEY);
 
+            client.init(configuration);
+
             URI uri = new URI(configuration
                     .getPartnerConfiguration()
                     .getProperty(PartnerConfigurationKeys.SUBMIT_REFUND_URL)
@@ -116,8 +125,10 @@ public class HttpService {
             StringResponse response = client.post(uri, headers, body);
             SubmitRefundResponse submitRefundResponse = converter.xmlToObject(response.getContent(), SubmitRefundResponse.class);
 
+            // check signature
+            checkSignature(converter.xmlToMap(response.getContent()), key, request.getSignType());
             // check response
-            checkResponse(submitRefundResponse, key, request.getSignType());
+            checkResponse(submitRefundResponse);
 
             return submitRefundResponse;
         } catch (URISyntaxException e) {
@@ -143,8 +154,10 @@ public class HttpService {
             StringResponse response = client.post(uri, headers, body);
             QueryRefundResponse queryRefundResponse = converter.createQueryResponse(response.getContent());
 
+            // check signature
+            checkSignature(converter.xmlToMap(response.getContent()),key,request.getSignType());
             // check response
-            checkResponse(queryRefundResponse, key, request.getSignType());
+            checkResponse(queryRefundResponse);
 
             return queryRefundResponse;
         } catch (URISyntaxException e) {
@@ -170,9 +183,10 @@ public class HttpService {
             StringResponse sResponse = client.post(uri, headers, body);
             Response response = converter.xmlToObject(sResponse.getContent(), Response.class);
 
+            // check signature
+            checkSignature(converter.xmlToMap(sResponse.getContent()), key, request.getSignType());
             // check response
             checkReturnCode(response);
-            checkSignature(response, key, request.getSignType());
 
             return response;
         } catch (URISyntaxException e) {
@@ -181,9 +195,8 @@ public class HttpService {
         }
     }
 
-    void checkResponse(Response response, String key, SignType signType) {
+    void checkResponse(Response response) {
         checkReturnCode(response);
-        checkSignature(response, key, signType);
         checkResultCode(response);
     }
 
@@ -195,9 +208,8 @@ public class HttpService {
         }
     }
 
-    void checkSignature(Response response, String key, SignType signType) {
-        Map<String, String> respData = converter.objectToMap(response);
-        if (!signatureUtil.isSignatureValid(respData, key, signType)) {
+    void checkSignature(Map<String, String> response, String key, String signType) {
+        if (!signatureUtil.isSignatureValid(response, key, signType)) {
             log.error("Invalid sign value in XML: {}", response.toString());
             throw new PluginException("Invalid signature", FailureCause.INVALID_DATA);
         }

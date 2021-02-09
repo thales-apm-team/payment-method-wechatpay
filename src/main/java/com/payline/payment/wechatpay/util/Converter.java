@@ -60,11 +60,17 @@ public class Converter {
         QueryRefundResponse queryRefundResponse = mapToObject(m, QueryRefundResponse.class);
 
         List<Refund> refunds = new ArrayList<>();
-        int count = Integer.parseInt(m.get("refund_count"));
-        IntStream.range(0, count).forEach(i -> refunds.add( createRefund(i, m) ));
-        queryRefundResponse.setRefunds(refunds);
+        if(m.containsKey("refund_count")) {
+            int count = Integer.parseInt(m.get("refund_count"));
+            IntStream.range(0, count).forEach(i -> refunds.add(createRefund(i, m)));
+            queryRefundResponse.setRefunds(refunds);
+        }
 
         return queryRefundResponse;
+    }
+
+    public Map<String, String> xmlToMap(String s) {
+        return xml.xmlToMap(s);
     }
 
     private Refund createRefund(final int i, Map<String,String> map){

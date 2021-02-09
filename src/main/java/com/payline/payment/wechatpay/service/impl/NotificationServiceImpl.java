@@ -58,7 +58,7 @@ public class NotificationServiceImpl implements NotificationService {
             // verify Signature
             String key = configuration.getPartnerConfiguration().getProperty(PartnerConfigurationKeys.KEY);
             SignType signType = SignType.valueOf(configuration.getPartnerConfiguration().getProperty(PartnerConfigurationKeys.SIGN_TYPE));
-            if (!signatureUtil.isSignatureValid(mNotificationMessage, key, signType)) {
+            if (!signatureUtil.isSignatureValid(mNotificationMessage, key, signType.getType())) {
                 log.error("Invalid sign value in XML: {}", notificationMessage);
                 throw new PluginException("Invalid signature", FailureCause.INVALID_DATA);
             }
@@ -75,7 +75,7 @@ public class NotificationServiceImpl implements NotificationService {
                     .deviceInfo(configuration.getPartnerConfiguration().getProperty(PartnerConfigurationKeys.DEVICE_INFO))
                     .transactionId(transactionId)
                     .nonceStr(PluginUtils.generateRandomString(32))
-                    .signType(SignType.valueOf(configuration.getPartnerConfiguration().getProperty(PartnerConfigurationKeys.SIGN_TYPE)))
+                    .signType(SignType.valueOf(configuration.getPartnerConfiguration().getProperty(PartnerConfigurationKeys.SIGN_TYPE)).getType())
                     .build();
 
             QueryOrderResponse queryOrderResponse = httpService.queryOrder(configuration, queryOrderRequest);

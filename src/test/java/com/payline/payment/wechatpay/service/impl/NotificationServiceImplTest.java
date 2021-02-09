@@ -130,7 +130,7 @@ class NotificationServiceImplTest {
         Mockito.verify(xmlService, Mockito.atLeastOnce()).xmlToMap(eq(message));
         Mockito.verify(converter, Mockito.atLeastOnce()).mapToObject(eq(map), eq(NotificationMessage.class));
 
-        Mockito.verify(signatureUtil).isSignatureValid(eq(map), eq("key"), eq(SignType.MD5));
+        Mockito.verify(signatureUtil).isSignatureValid(eq(map), eq("key"), eq(SignType.MD5.getType()));
         Mockito.verify(httpService, Mockito.atLeastOnce()).queryOrder(any(), any());
     }
 
@@ -188,7 +188,7 @@ class NotificationServiceImplTest {
         Mockito.verify(xmlService, Mockito.atLeastOnce()).xmlToMap(eq(message));
         Mockito.verify(converter, Mockito.atLeastOnce()).mapToObject(eq(map), eq(NotificationMessage.class));
 
-        Mockito.verify(signatureUtil).isSignatureValid(eq(map), eq("key"), eq(SignType.MD5));
+        Mockito.verify(signatureUtil).isSignatureValid(eq(map), eq("key"), eq(SignType.MD5.getType()));
         Mockito.verify(httpService, Mockito.atLeastOnce()).queryOrder(any(), any());
     }
 
@@ -245,25 +245,9 @@ class NotificationServiceImplTest {
         Mockito.verify(xmlService, Mockito.atLeastOnce()).xmlToMap(eq(message));
         Mockito.verify(converter, Mockito.atLeastOnce()).mapToObject(eq(map), eq(NotificationMessage.class));
 
-        Mockito.verify(signatureUtil).isSignatureValid(eq(map), eq("key"), eq(SignType.MD5));
+        Mockito.verify(signatureUtil).isSignatureValid(eq(map), eq("key"), eq(SignType.MD5.getType()));
         Mockito.verify(httpService, Mockito.atLeastOnce()).queryOrder(any(), any());
     }
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
     @Test
     void parsePluginException() {

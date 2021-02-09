@@ -45,7 +45,7 @@ public class StringResponse {
             instance.statusMessage = httpResponse.getStatusLine().getReasonPhrase();
 
             try {
-                instance.content = EntityUtils.toString(httpResponse.getEntity());
+                instance.content = EntityUtils.toString(httpResponse.getEntity(),"UTF-8");
             } catch (IOException e) {
                 instance.content = null;
             }

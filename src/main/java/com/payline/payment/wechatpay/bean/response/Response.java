@@ -31,4 +31,7 @@ public class Response extends WeChatPayBean {
 
     @SerializedName("err_code_des")
     String errorCodeDescription;
+
+    @SerializedName("device_info")
+    String deviceInfo;
 }
