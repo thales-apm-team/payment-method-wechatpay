@@ -55,8 +55,9 @@ public class PaymentServiceImpl implements PaymentService {
             String qrCode = unifiedOrderResponse.getCodeUrl();
 
             // return QRCode
-            qrCodeService.generateMatrix(qrCode, 300); // // TODO: Demander à Monext la taille du QRCode
-            paymentResponse = null; // todo ici faire de la magie pour retourner un QRCode
+            qrCodeService.generateMatrix(qrCode, 300);
+            paymentResponse = null; // TODO : Retourner l'image du QRCode
+
             
         }catch (PluginException e){
             log.info("a PluginException occurred", e);
